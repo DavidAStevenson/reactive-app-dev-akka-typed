@@ -1,4 +1,4 @@
-object Hello extends App {
+object Main extends App {
     println("App starting...")
 
     import Tourist._
