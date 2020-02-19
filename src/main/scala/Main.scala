@@ -1,3 +1,19 @@
+import akka.NotUsed
+import akka.actor.typed.{ ActorSystem, Behavior }
+import akka.actor.typed.scaladsl.{ Behaviors }
+
+
+object TourismWorld {
+  def apply(): Behavior[NotUsed] =
+    Behaviors.setup { context =>
+      val tourist = context.spawn(Tourist(), "dave")
+      context.watch(tourist)
+      tourist ! Tourist.Start(Seq("NZ"))
+
+      Behaviors.empty
+    }
+}
+
 object Main extends App {
     println("App starting...")
 
@@ -7,4 +23,6 @@ object Main extends App {
     import Guidebook._
     val inquiry = Inquiry("NZ")
     val guidance = Guidance("NZ", "New Zealand Dollars are used there")
+
+    ActorSystem(TourismWorld(), "TourismWorld")
 }
