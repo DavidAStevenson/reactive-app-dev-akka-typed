@@ -23,7 +23,7 @@ object Main extends App {
     val start = Start(Seq("NZ"))
 
     import Guidebook._
-    val inquiry = Inquiry("NZ")
+    //val inquiry = Inquiry("NZ")
     val guidance = Guidance("NZ", "New Zealand Dollars are used there")
 
     ActorSystem(TourismWorld(), "TourismWorld")
