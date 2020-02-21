@@ -22,7 +22,7 @@ private class Tourist(context: ActorContext[Command], guidebook: ActorRef[Guideb
     msg match {
       case Start(codes) =>
         println(s"Received a Start message: ${codes}")
-        guidebook ! Guidebook.Inquiry(codes(0), guidanceResponseAdapter)
+        codes.foreach(guidebook ! Guidebook.Inquiry(_, guidanceResponseAdapter))
       case wrapped: WrappedInquiryResponse =>
         println("Received another type of message...")
         wrapped.response match {
