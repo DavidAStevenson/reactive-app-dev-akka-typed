@@ -24,7 +24,7 @@ private class Tourist(context: ActorContext[Command], guidebook: ActorRef[Guideb
         println(s"Received a Start message: ${codes}")
         guidebook ! Guidebook.Inquiry(codes(0), guidanceResponseAdapter)
       case wrapped: WrappedInquiryResponse =>
-        println("Received anoter type of message...")
+        println("Received another type of message...")
         wrapped.response match {
           case Guidebook.Guidance(countryCode, description) =>
             println(s"$countryCode: $description")
