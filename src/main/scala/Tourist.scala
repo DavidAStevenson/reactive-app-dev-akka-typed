@@ -3,7 +3,7 @@ import akka.actor.typed.scaladsl.{ AbstractBehavior, ActorContext, Behaviors }
 
 object Tourist {
   // def apply(): Behavior[Start] = Behaviors.setup(context => new Tourist(context))
-  def apply(guidebook: ActorRef[Guidebook.Command]): Behavior[Command] =
+  def apply(guidebook: ActorRef[Guidebook.Inquiry]): Behavior[Command] =
     Behaviors.setup(context => new Tourist(context, guidebook))
 
   sealed trait Command
@@ -12,8 +12,10 @@ object Tourist {
 }
 
 import Tourist._
-private class Tourist(context: ActorContext[Command], guidebook: ActorRef[Guidebook.Command])
+private class Tourist(context: ActorContext[Command], guidebook: ActorRef[Guidebook.Inquiry])
   extends AbstractBehavior[Command](context) {
+
+  println(s"Tourist created with ${guidebook} as its Guide...")
 
   val guidanceResponseAdapter: ActorRef[Guidebook.Response] =
     context.messageAdapter(response => WrappedInquiryResponse(response))
