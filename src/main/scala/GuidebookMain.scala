@@ -13,10 +13,22 @@ object GuidebookWorld {
     }
 }
 
-object GuidebookMain extends App {
-  val config = ConfigFactory.parseString(s"""
-    akka.remote.artery.canonical.port=25251
-    """).withFallback(ConfigFactory.load())
+object GuidebookMain {
 
-  ActorSystem(GuidebookWorld(), "TourismWorld", config)
+  def main(args: Array[String]): Unit = {
+    val port =
+      if (args.isEmpty)
+        25251
+      else
+        args(0).toInt
+    startup(port)
+  }
+
+  def startup(port: Int): Unit = {
+    val config = ConfigFactory.parseString(s"""
+      akka.remote.artery.canonical.port=$port
+      """).withFallback(ConfigFactory.load())
+
+    ActorSystem(GuidebookWorld(), "TourismWorld", config)
+  }
 }

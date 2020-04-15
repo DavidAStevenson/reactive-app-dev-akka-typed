@@ -18,9 +18,11 @@ object TourismWorld {
 
       Behaviors.receiveMessagePartial[Receptionist.Listing] {
         case Guidebook.GuidebookServiceKey.Listing(listings) =>
+          var count = 0
           listings.foreach { guidebook =>
             println(s"Spawning tourist with ${guidebook}")
-            val tourist = context.spawn(Tourist(guidebook), "dave")
+            val tourist = context.spawn(Tourist(guidebook), s"tourist-$count")
+            count += 1
             tourist ! Tourist.Start((Locale.getISOCountries).toIndexedSeq)
           }
           Behaviors.same
@@ -29,10 +31,22 @@ object TourismWorld {
 
 }
 
-object TouristMain extends App {
-  val config = ConfigFactory.parseString(s"""
-    akka.remote.artery.canonical.port=25252
-    """).withFallback(ConfigFactory.load())
+object TouristMain {
 
-  ActorSystem[Nothing](TourismWorld(), "TourismWorld", config)
+  def main(args: Array[String]): Unit = {
+    val port =
+      if (args.isEmpty)
+        25252
+      else
+        args(0).toInt
+    startup(port)
+  }
+
+  def startup(port: Int): Unit = {
+    val config = ConfigFactory.parseString(s"""
+      akka.remote.artery.canonical.port=$port
+      """).withFallback(ConfigFactory.load())
+
+    ActorSystem[Nothing](TourismWorld(), "TourismWorld", config)
+  }
 }
