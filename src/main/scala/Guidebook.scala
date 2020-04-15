@@ -1,6 +1,6 @@
 import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.{ AbstractBehavior, ActorContext, Behaviors }
-import akka.actor.typed.receptionist.{ Receptionist, ServiceKey }
+import akka.actor.typed.receptionist.{ ServiceKey }
 
 import java.util.{Currency, Locale}
 
@@ -20,8 +20,7 @@ object Guidebook {
 import Guidebook._
 private class Guidebook(context: ActorContext[Command]) extends AbstractBehavior[Command](context) {
 
-  println(s"Actor ${context.self} registering with receptionist, key: ${GuidebookServiceKey}")
-  context.system.receptionist ! Receptionist.Register(GuidebookServiceKey, context.self)
+  println(s"Actor ${context.self} spawned and ready to guide tourists!")
 
   def describe(locale: Locale) =
     s"""In ${locale.getDisplayCountry},

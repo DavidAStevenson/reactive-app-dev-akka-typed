@@ -1,13 +1,24 @@
 import akka.NotUsed
-import akka.actor.typed.{ ActorSystem, Behavior }
-import akka.actor.typed.scaladsl.{ Behaviors }
+import akka.actor.typed.{ ActorSystem, Behavior, SupervisorStrategy }
+import akka.actor.typed.scaladsl.{ Behaviors, Routers }
+import akka.actor.typed.receptionist.{ Receptionist }
 import com.typesafe.config.ConfigFactory
 
 object GuidebookWorld {
-  def apply(): Behavior[NotUsed] =
+
+  import Guidebook._
+
+  def apply(): Behavior[Guidebook.Inquiry] =
     Behaviors.setup { context =>
-      val guidebook = context.spawn(Guidebook(), "guidebook")
-      context.watch(guidebook)
+
+      val pool = Routers.pool(poolSize = 3)(
+          // make sure the workers are restarted if they fail
+          Behaviors.supervise(Guidebook()).onFailure[Exception](SupervisorStrategy.restart))
+      val router = context.spawn(pool, "guidebook-pool")
+      context.watch(router)
+
+      println(s"GuidebookWorld registering ${router} with receptionist, key: ${GuidebookServiceKey}")
+      context.system.receptionist ! Receptionist.Register(GuidebookServiceKey, router)
 
       Behaviors.empty
     }
