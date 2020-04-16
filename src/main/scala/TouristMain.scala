@@ -1,5 +1,5 @@
 import akka.actor.typed.{ ActorSystem, Behavior }
-import akka.actor.typed.scaladsl.{ Behaviors }
+import akka.actor.typed.scaladsl.{ Behaviors, Routers }
 import akka.actor.typed.receptionist.Receptionist
 import com.typesafe.config.ConfigFactory
 
@@ -7,26 +7,17 @@ import java.util.Locale
 
 object TourismWorld {
 
-  sealed trait Command
-  private case class ListingResponse(listing: Receptionist.Listing) extends Command
-
   def apply(): Behavior[Nothing] =
-    Behaviors.setup[Receptionist.Listing] { context =>
+    Behaviors.setup[Nothing] { context =>
 
-      context.system.receptionist ! Receptionist.Subscribe(Guidebook.GuidebookServiceKey, context.self)
-      println(s"Subscribing to find Guidebook with ${Guidebook.GuidebookServiceKey}")
+      val group = Routers.group(Guidebook.GuidebookServiceKey)
+      val router = context.spawn(group, "guidebook-group")
 
-      Behaviors.receiveMessagePartial[Receptionist.Listing] {
-        case Guidebook.GuidebookServiceKey.Listing(listings) =>
-          var count = 0
-          listings.foreach { guidebook =>
-            println(s"Spawning tourist with ${guidebook}")
-            val tourist = context.spawn(Tourist(guidebook), s"tourist-$count")
-            count += 1
-            tourist ! Tourist.Start((Locale.getISOCountries).toIndexedSeq)
-          }
-          Behaviors.same
-      }
+      val tourist = context.spawn(Tourist(router), s"tourist")
+      Thread.sleep(5000) // YUCK!
+      tourist ! Tourist.Start((Locale.getISOCountries).toIndexedSeq)
+
+      Behaviors.same
     }.narrow
 
 }
