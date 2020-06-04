@@ -1,0 +1,1 @@
+lazy val common = project
