@@ -8,29 +8,16 @@ There are some pretty significant differences in Akka Typed to the Akka Classic 
 
 ## running
 
-1) Run Guidebook:
+1) Use sbt to start-up
 
 ```
-sbt "runMain GuidebookMain"
+sbt
 ```
 
-2) Run Tourist:
+2) Change to a subproject per chapter
 
 ```
-sbt "runMain TouristMain"
+sbt> project chapter2
 ```
 
-To run with akka cluster logging turned off:
-(in different terminals)
-```
-sbt "-Dakka.cluster.log-info=off" "runMain TouristMain"
-sbt "-Dakka.cluster.log-info=off" "runMain GuidebookMain"
-```
-
-To run with more than one Tourist:
-(in different terminals)
-```
-sbt "runMain GuidebookMain"
-sbt "runMain TouristMain"
-sbt "runMain TouristMain 25253"
-```
+See README.md in subproject directories for more on each.
