@@ -65,4 +65,76 @@ object RareBooksProtocol {
   final case class BookFound(books: List[BookCard], dateInMillis: Long = currentTimeMillis) extends Msg {
     require(books.nonEmpty, "Book(s) required.")
   }
+
+  /**
+   * Book was not found message.
+   *
+   * @param reason reason book was not found
+   * @param dateInMillis date message was created
+   */
+  final case class BookNotFound(reason: String, dateInMillis: Long = currentTimeMillis) extends Msg {
+    require(reason.nonEmpty, "Reason is required.")
+  }
+
+  /**
+   * Complain message when book not found.
+   *
+   * @param dateInMillis date message was created
+   */
+  final case class Complain(dateInMillis: Long = currentTimeMillis) extends Msg
+
+  /**
+   * Credit message
+   *
+   * @param dateInMillis date message was created
+   */
+  final case class Credit(dateInMillis: Long = currentTimeMillis) extends Msg
+
+  /**
+   * Find book by author message.
+   *
+   * @param author author to search for
+   * @param dateInMillis date message was created
+   */
+  final case class FindBookByAuthor(author: String, dateInMillis: Long = currentTimeMillis) extends Msg {
+    require(author.nonEmpty, "Author required.")
+  }
+
+  /**
+   * Find book by isbn message.
+   *
+   * @param isbn isbn to search for
+   * @param dateInMillis date message was created
+   */
+  final case class FindBookByIsbn(isbn: String, dateInMillis: Long = currentTimeMillis) extends Msg {
+    require(isbn.nonEmpty, "Isbn required.")
+  }
+
+  /**
+   * Find book by topic.
+   *
+   * @param topic set of topics to search for
+   * @param dateInMillis date message was created
+   */
+  final case class FindBookByTopic(topic: Set[Topic], dateInMillis: Long = currentTimeMillis) extends Msg {
+    require(topic.nonEmpty, "Topic required.")
+  }
+
+  /**
+   * Find book by title message.
+   *
+   * @param title title to search for
+   * @param dateInMillis date message was created
+   */
+  final case class FindBookByTitle(title: String, dateInMillis: Long = currentTimeMillis) extends Msg {
+    require(title.nonEmpty, "Title required.")
+  }
+
+  /**
+   * Get customer message.
+   *
+   * @param dateInMillis date message was created
+   */
+  final case class GetCustomer(dateInMillis: Long = currentTimeMillis) extends Msg
+
 }
