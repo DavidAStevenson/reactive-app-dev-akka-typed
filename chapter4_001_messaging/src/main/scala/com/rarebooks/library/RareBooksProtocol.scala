@@ -1,6 +1,6 @@
 package com.rarebooks.library
 
-import scala.compat.Platform
+import java.lang.System.currentTimeMillis
 
 /*
  * The shared data structures and messages for the rare books info service.
@@ -62,7 +62,7 @@ object RareBooksProtocol {
    * @param books  list of book cards
    * @param dateInMillis date message was created
    */
-  final case class BookFound(books: List[BookCard], dateInMillis: Long = Platform.currentTime) extends Msg {
+  final case class BookFound(books: List[BookCard], dateInMillis: Long = currentTimeMillis) extends Msg {
     require(books.nonEmpty, "Book(s) required.")
   }
 }
