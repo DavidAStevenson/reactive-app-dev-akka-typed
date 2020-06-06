@@ -1,5 +1,6 @@
 lazy val commonSettings = Seq(
-  scalaVersion := "2.13.1"
+  scalaVersion := "2.13.1",
+  scalacOptions += "-deprecation"
 )
 
 lazy val chapter2 = project
