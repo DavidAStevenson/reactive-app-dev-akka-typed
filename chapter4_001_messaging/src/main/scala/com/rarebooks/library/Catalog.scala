@@ -46,4 +46,7 @@ object Catalog {
     theHistories.isbn -> theHistories
   )
 
+  def findBookByIsbn(isbn: String): Option[List[BookCard]] =
+    None
+
 }
