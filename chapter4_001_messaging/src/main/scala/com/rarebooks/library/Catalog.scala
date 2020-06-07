@@ -46,7 +46,12 @@ object Catalog {
     theHistories.isbn -> theHistories
   )
 
-  def findBookByIsbn(isbn: String): Option[List[BookCard]] =
-    None
+  def findBookByIsbn(isbn: String): Option[List[BookCard]] = {
+    val result = books.get(isbn)
+    result match {
+      case found if found.nonEmpty => Some(found.toList)
+      case _                       => None
+    }
+  }
 
 }
