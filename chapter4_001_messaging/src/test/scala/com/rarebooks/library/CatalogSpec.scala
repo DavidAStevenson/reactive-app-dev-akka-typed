@@ -31,5 +31,21 @@ class CatalogSpec extends BaseSpec with TableDrivenPropertyChecks {
     }
   }
 
+  "findBookByAuthor" should {
+    val findByAuthorCases = Table(
+      ("statement", "author", "result")
+      , ("theEpicOfGilgamesh", theEpicOfGilgamesh.author, Some[List[BookCard]](List(theEpicOfGilgamesh)) )
+      , ("phaedrus"          , phaedrus.author          , Some[List[BookCard]](List(phaedrus))          )
+      , ("theHistories"      , theHistories.author      , Some[List[BookCard]](List(theHistories))       )
+      , ("None when author not found", "Williard Price" , None)
+      )
+
+    forAll(findByAuthorCases) { (statement: String, author: String, result: Option[List[BookCard]]) =>
+      s"return $statement" in {
+        findBookByAuthor(author) should === (result)
+      }
+    }
+  }
+
 }
 

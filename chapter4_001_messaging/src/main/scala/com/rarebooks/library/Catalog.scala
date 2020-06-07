@@ -54,4 +54,12 @@ object Catalog {
     }
   }
 
+  def findBookByAuthor(author: String): Option[List[BookCard]] = {
+    val result = books.values.filter(b => b.author == author)
+    result match {
+      case found if found.nonEmpty => Some(found.toList)
+      case _                       => None
+    }
+  }
+
 }
