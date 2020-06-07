@@ -3,7 +3,7 @@ package com.rarebooks.library
 import org.scalatest.wordspec.AnyWordSpec
 import java.lang.System.currentTimeMillis
 
-class RareBooksProtocolSpec extends AnyWordSpec {
+class RareBooksProtocolSpec extends BaseSpec {
 
   import RareBooksProtocol._
 
