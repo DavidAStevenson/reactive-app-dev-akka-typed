@@ -62,4 +62,28 @@ object Catalog {
     }
   }
 
+  def findBookByTitle(title: String): Option[List[BookCard]] = {
+    val result = books.values.filter(b => b.title == title)
+    result match {
+      case found if found.nonEmpty => Some(found.toList)
+      case _                       => None
+    }
+  }
+
+  def findBookByTopic(topics: Set[Topic]): Option[List[BookCard]] = {
+    val result = books.values.filter(b => b.topic.exists(t => topics.contains(t)))
+    result match {
+      case found if found.nonEmpty => Some(found.toList)
+      case _                       => None
+    }
+    /*
+    val result = books.values.filter(b => b.topic == topics)
+    result match {
+      case found if found.nonEmpty => Some(found.toList)
+      case _                       => None
+    }
+    None
+    */
+  }
+
 }
