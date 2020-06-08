@@ -76,14 +76,6 @@ object Catalog {
       case found if found.nonEmpty => Some(found.toList)
       case _                       => None
     }
-    /*
-    val result = books.values.filter(b => b.topic == topics)
-    result match {
-      case found if found.nonEmpty => Some(found.toList)
-      case _                       => None
-    }
-    None
-    */
   }
 
 }
