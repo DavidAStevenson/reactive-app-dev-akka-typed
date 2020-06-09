@@ -7,8 +7,8 @@ object RareBooks {
 
   sealed trait Command
   private[library] case object Open extends Command
-  private case object Close extends Command
-  private case object Report extends Command
+  private[library] case object Close extends Command
+  private[library] case object Report extends Command
 
   def apply(): Behavior[Command] = Behaviors.setup { context =>
     context.log.info("RareBooks started")
@@ -25,7 +25,11 @@ class RareBooks(context: ActorContext[RareBooks.Command]) {
       case Open =>
         context.log.info("Time to open up!")
         Behaviors.same
-      case _ =>
+      case Close =>
+        context.log.info("Time to close!")
+        Behaviors.same
+      case Report =>
+        context.log.info("Time to produce a report.")
         Behaviors.same
     }
 }

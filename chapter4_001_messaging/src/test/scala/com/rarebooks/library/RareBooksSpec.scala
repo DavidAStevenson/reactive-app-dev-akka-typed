@@ -21,12 +21,30 @@ class RareBooksSynchronousSpec extends BaseSpec {
 class RareBooksAsyncSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
   "RareBooks" should {
-    "log \"Time to open up!\" at info, when opened" in {
-      val rareBooks = testKit.spawn(RareBooks(), "rareBooks")
-      LoggingTestKit.info("Time to open up!").expect {
+
+    val rareBooks = testKit.spawn(RareBooks(), "rareBooks")
+
+    val openLog = "Time to open up!"
+    s"log '${openLog}' at info, when opened" in {
+      LoggingTestKit.info(openLog).expect {
         rareBooks ! RareBooks.Open
       }
     }
+
+    val closeLog = "Time to close!"
+    s"log '${closeLog}' at info, when closed" in {
+      LoggingTestKit.info(closeLog).expect {
+        rareBooks ! RareBooks.Close
+      }
+    }
+
+    val reportLog = "Time to produce a report."
+    s"log '${reportLog}' at info, when a report command is received" in {
+      LoggingTestKit.info(reportLog).expect {
+        rareBooks ! RareBooks.Report
+      }
+    }
+
   }
 
 }
