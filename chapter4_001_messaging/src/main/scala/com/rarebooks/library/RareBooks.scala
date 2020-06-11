@@ -14,7 +14,6 @@ object RareBooks {
   private case object TimerKey
 
   def apply(): Behavior[Command] = Behaviors.setup { context =>
-    context.log.info("RareBooks started")
     Behaviors.withTimers { timers => new RareBooks(context, timers).open() }
   }
 
@@ -22,6 +21,12 @@ object RareBooks {
 
 class RareBooks(context: ActorContext[RareBooks.Command], timers: TimerScheduler[RareBooks.Command]) {
   import RareBooks._
+
+  private def init(): Unit = {
+    context.log.info("RareBooks started")
+  }
+
+  init()
 
   private def open(): Behavior[Command] =
     Behaviors.receiveMessage {

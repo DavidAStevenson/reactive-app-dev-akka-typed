@@ -9,30 +9,30 @@ import akka.actor.testkit.typed.scaladsl.ManualTime
 import org.slf4j.event.Level
 import org.scalatest.wordspec.AnyWordSpecLike
 
-class RareBooksSynchronousSpec extends BaseSpec {
-
-  "Creating RareBooks" should {
-
-    "log \"RareBooks started\" when created" in {
-      val testKit = BehaviorTestKit(RareBooks())
-      testKit.logEntries() shouldBe Seq(CapturedLogEvent(Level.INFO, "RareBooks started"))
-    }
-  }
-}
-
 class RareBooksAsyncSpec
   extends ScalaTestWithActorTestKit(ManualTime.config)
   with AnyWordSpecLike {
 
+  val initLog = "RareBooks started"
   val openLog = "Time to open up!"
   val closeLog = "Time to close!"
   val reportLog = "Time to produce a report."
 
   "RareBooks" can {
 
+    "initialize" should {
+
+      s"log '${initLog}' when created" in {
+        LoggingTestKit.info(initLog).expect {
+          val rareBooks = testKit.spawn(RareBooks(), "rareBooks-init")
+        }
+      }
+
+    }
+
     "receive messages" should {
 
-      val rareBooks = testKit.spawn(RareBooks(), "rareBooks")
+      val rareBooks = testKit.spawn(RareBooks(), "rareBooks-receive")
 
       s"log '${openLog}' at info, when opened" in {
         LoggingTestKit.info(openLog).expect {
@@ -56,7 +56,7 @@ class RareBooksAsyncSpec
     "operate independently" should {
 
       val manualTime: ManualTime = ManualTime()
-      val rareBooks = spawn(RareBooks(), "rareBooks2")
+      val rareBooks = spawn(RareBooks(), "rareBooks-operate")
 
       "open up when initially commanded to open" in {
         LoggingTestKit.info(openLog).expect {
