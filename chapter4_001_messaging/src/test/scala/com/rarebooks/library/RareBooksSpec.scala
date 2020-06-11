@@ -58,7 +58,7 @@ class RareBooksAsyncSpec
       val manualTime: ManualTime = ManualTime()
       val rareBooks = spawn(RareBooks(), "rareBooks2")
 
-      s"open up when initially commanded to open" in {
+      "open up when initially commanded to open" in {
         LoggingTestKit.info(openLog).expect {
           rareBooks ! RareBooks.Open
         }
@@ -72,7 +72,7 @@ class RareBooksAsyncSpec
           }
       }
 
-      s"close down when it's time to close" in {
+      "close down when it's time to close" in {
         LoggingTestKit.info(closeLog).expect {
           manualTime.timePasses(1.seconds)
         }
