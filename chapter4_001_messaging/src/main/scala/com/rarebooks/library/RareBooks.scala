@@ -22,6 +22,8 @@ object RareBooks {
 class RareBooks(context: ActorContext[RareBooks.Command], timers: TimerScheduler[RareBooks.Command]) {
   import RareBooks._
 
+  private var state: Int = 0
+
   private def init(): Unit = {
     context.log.info("RareBooks started")
   }
@@ -31,12 +33,20 @@ class RareBooks(context: ActorContext[RareBooks.Command], timers: TimerScheduler
   private def open(): Behavior[Command] =
     Behaviors.receiveMessage {
       case Open =>
-        context.log.info("Time to open up!")
-        timers.startSingleTimer(TimerKey, Close, FiniteDuration(10000, Millis))
+        if (state == 0) {
+          context.log.info("Time to open up!")
+          timers.startSingleTimer(TimerKey, Close, FiniteDuration(10000, Millis))
+          state = 1
+        } else
+          context.log.info("We're already open.")
         Behaviors.same
       case Close =>
-        context.log.info("Time to close!")
-        timers.startSingleTimer(TimerKey, Open, FiniteDuration(10000, Millis))
+        if (state == 1) {
+          context.log.info("Time to close!")
+          timers.startSingleTimer(TimerKey, Open, FiniteDuration(10000, Millis))
+          state = 0
+        } else
+          context.log.info("We're already closed.")
         Behaviors.same
       case Report =>
         context.log.info("Time to produce a report.")

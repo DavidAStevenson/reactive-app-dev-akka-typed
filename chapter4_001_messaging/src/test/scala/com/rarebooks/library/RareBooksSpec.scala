@@ -15,7 +15,9 @@ class RareBooksAsyncSpec
 
   val initLog = "RareBooks started"
   val openLog = "Time to open up!"
+  val alreadyOpenLog = "We're already open."
   val closeLog = "Time to close!"
+  val alreadyClosedLog = "We're already closed."
   val reportLog = "Time to produce a report."
 
   "RareBooks" can {
@@ -30,29 +32,6 @@ class RareBooksAsyncSpec
 
     }
 
-    "receive messages" should {
-
-      val rareBooks = testKit.spawn(RareBooks(), "rareBooks-receive")
-
-      s"log '${openLog}' at info, when opened" in {
-        LoggingTestKit.info(openLog).expect {
-          rareBooks ! RareBooks.Open
-        }
-      }
-
-      s"log '${closeLog}' at info, when closed" in {
-        LoggingTestKit.info(closeLog).expect {
-          rareBooks ! RareBooks.Close
-        }
-      }
-
-      s"log '${reportLog}' at info, when a report command is received" in {
-        LoggingTestKit.info(reportLog).expect {
-          rareBooks ! RareBooks.Report
-        }
-      }
-    }
-
     "operate independently" should {
 
       val manualTime: ManualTime = ManualTime()
@@ -60,6 +39,12 @@ class RareBooksAsyncSpec
 
       "open up when initially commanded to open" in {
         LoggingTestKit.info(openLog).expect {
+          rareBooks ! RareBooks.Open
+        }
+      }
+
+      s"log '${alreadyOpenLog}' at info, when already opened" in {
+        LoggingTestKit.info(alreadyOpenLog).expect {
           rareBooks ! RareBooks.Open
         }
       }
@@ -75,6 +60,18 @@ class RareBooksAsyncSpec
       "close down when it's time to close" in {
         LoggingTestKit.info(closeLog).expect {
           manualTime.timePasses(1.seconds)
+        }
+      }
+
+      s"log '${alreadyClosedLog}' at info, when already closed" in {
+        LoggingTestKit.info(alreadyClosedLog).expect {
+          rareBooks ! RareBooks.Close
+        }
+      }
+
+      s"log '${reportLog}' at info, when a report command is received" in {
+        LoggingTestKit.info(reportLog).expect {
+          rareBooks ! RareBooks.Report
         }
       }
 
