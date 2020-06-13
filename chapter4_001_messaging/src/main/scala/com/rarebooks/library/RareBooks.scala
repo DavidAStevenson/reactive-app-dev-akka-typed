@@ -22,6 +22,8 @@ object RareBooks {
 class RareBooks(context: ActorContext[RareBooks.Command], timers: TimerScheduler[RareBooks.Command]) {
   import RareBooks._
 
+  private val librarian = createLibrarian()
+
   private def init(): Unit = {
     context.log.info("RareBooks started")
   }
@@ -56,4 +58,9 @@ class RareBooks(context: ActorContext[RareBooks.Command], timers: TimerScheduler
         context.log.info("Time to produce a report.")
         Behaviors.same
     }
+
+  private def createLibrarian(): ActorRef[RareBooksProtocol.Msg] = {
+    context.spawn(Librarian(), "librarian")
+  }
+
 }

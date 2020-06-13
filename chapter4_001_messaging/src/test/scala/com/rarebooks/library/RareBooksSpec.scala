@@ -2,12 +2,26 @@ package com.rarebooks.library
 
 import scala.concurrent.duration._
 import akka.actor.testkit.typed.CapturedLogEvent
+import akka.actor.testkit.typed.Effect.{ Spawned }
 import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.actor.testkit.typed.scaladsl.LoggingTestKit
 import akka.actor.testkit.typed.scaladsl.ManualTime
 import org.slf4j.event.Level
 import org.scalatest.wordspec.AnyWordSpecLike
+
+class RareBooksSynchronousSpec extends BaseSpec {
+
+  "Creating RareBooks" should {
+
+    val childActorName = "librarian"
+
+    s"spawn child actor named ${childActorName}" in {
+      val testKit = BehaviorTestKit(RareBooks())
+      testKit.expectEffectType[Spawned[Librarian]].childName should === (childActorName)
+    }
+  }
+}
 
 class RareBooksAsyncSpec
   extends ScalaTestWithActorTestKit(ManualTime.config)
