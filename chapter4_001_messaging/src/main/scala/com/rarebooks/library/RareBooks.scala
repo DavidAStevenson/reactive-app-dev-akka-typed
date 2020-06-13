@@ -36,6 +36,7 @@ class RareBooks(context: ActorContext[RareBooks.Command], timers: TimerScheduler
       case Close =>
         context.log.info("Time to close!")
         timers.startSingleTimer(TimerKey, Open, FiniteDuration(10000, Millis))
+        context.self ! Report
         closed()
       case Report =>
         context.log.info("We only produce reports while closed")
