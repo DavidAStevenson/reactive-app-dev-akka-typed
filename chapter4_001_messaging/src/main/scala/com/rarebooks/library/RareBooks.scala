@@ -6,20 +6,26 @@ import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, TimerScheduler }
 
 object RareBooks {
 
-  sealed trait Command
-  private[library] case object Open extends Command
-  private[library] case object Close extends Command
-  private[library] case object Report extends Command
+  sealed trait PrivateCommand extends RareBooksProtocol.BaseMsg
+  private[library] case object Open extends PrivateCommand
+  private[library] case object Close extends PrivateCommand
+  private[library] case object Report extends PrivateCommand
 
   private case object TimerKey
 
-  def apply(): Behavior[Command] = Behaviors.setup { context =>
-    Behaviors.withTimers { timers => new RareBooks(context, timers).closed() }
-  }
+  def apply(): Behavior[RareBooksProtocol.Msg] =
+    setup()
+    .narrow
+
+  private[library] def setup(): Behavior[RareBooksProtocol.BaseMsg] =
+    Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
+      Behaviors.withTimers {
+        timers => new RareBooks(context, timers).closed()
+      }
+    }
 
 }
-
-class RareBooks(context: ActorContext[RareBooks.Command], timers: TimerScheduler[RareBooks.Command]) {
+class RareBooks(context: ActorContext[RareBooksProtocol.BaseMsg], timers: TimerScheduler[RareBooksProtocol.BaseMsg]) {
   import RareBooks._
 
   private val librarian = createLibrarian()
@@ -30,7 +36,7 @@ class RareBooks(context: ActorContext[RareBooks.Command], timers: TimerScheduler
 
   init()
 
-  private def open(): Behavior[Command] =
+  private def open(): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.receiveMessage {
       case Open =>
         context.log.info("We're already open.")
@@ -45,7 +51,7 @@ class RareBooks(context: ActorContext[RareBooks.Command], timers: TimerScheduler
         Behaviors.same
     }
 
-  private def closed(): Behavior[Command] =
+  private def closed(): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.receiveMessage {
       case Open =>
         context.log.info("Time to open up!")

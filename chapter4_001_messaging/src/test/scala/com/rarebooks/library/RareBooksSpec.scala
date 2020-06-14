@@ -1,6 +1,7 @@
 package com.rarebooks.library
 
 import scala.concurrent.duration._
+import akka.actor.typed.{ Behavior }
 import akka.actor.testkit.typed.CapturedLogEvent
 import akka.actor.testkit.typed.Effect.{ Spawned }
 import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
@@ -48,8 +49,12 @@ class RareBooksAsyncSpec
 
     "operate independently" should {
 
+      // special version of apply() to enable testing of internals
+      def rareBooksTestApply(): Behavior[RareBooksProtocol.BaseMsg] =
+        RareBooks.setup()
+
       val manualTime: ManualTime = ManualTime()
-      val rareBooks = spawn(RareBooks(), "rareBooks-operate")
+      val rareBooks = spawn(rareBooksTestApply(), "rareBooks-operate")
 
       "open up when initially commanded to open" in {
         LoggingTestKit.info(openLog).expect {

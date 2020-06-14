@@ -53,7 +53,10 @@ object RareBooksProtocol {
     extends Card
 
   /* trait for all messages. */
-  trait Msg {
+  trait BaseMsg
+
+  /* trait for all public messages. */
+  trait Msg extends BaseMsg {
     def dateInMillis: Long
   }
 
