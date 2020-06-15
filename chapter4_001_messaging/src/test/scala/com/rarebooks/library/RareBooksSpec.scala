@@ -14,7 +14,7 @@ import org.scalatest.wordspec.AnyWordSpecLike
 class RareBooksSynchronousSpec extends BaseSpec {
 
   "Creating RareBooks" ignore {
-    // synchronous testing not possible as RareSpec uses timers
+    // synchronous testing not possible as RareBooks uses timers
 
     val childActorName = "librarian"
 
