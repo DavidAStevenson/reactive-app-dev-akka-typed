@@ -2,12 +2,16 @@ package com.rarebooks.library
 
 import org.scalatest.wordspec.AnyWordSpec
 import java.lang.System.currentTimeMillis
+import akka.actor.testkit.typed.scaladsl.TestInbox
+import akka.actor.typed.ActorRef
 
 class RareBooksProtocolSpec extends BaseSpec {
 
   import RareBooksProtocol._
 
   "Rare book protocol messages" should {
+    val dummyRef: ActorRef[Msg] = TestInbox[Msg]().ref
+
     "throw an IllegalArgumentException when 'BookFound.books' is empty" in {
       intercept[IllegalArgumentException] { BookFound(List()) }
     }
@@ -15,19 +19,19 @@ class RareBooksProtocolSpec extends BaseSpec {
       intercept[IllegalArgumentException] { BookNotFound("") }
     }
     "have a dateInMillis no later than it is checked" in {
-      assert(Complain().dateInMillis <= currentTimeMillis)
+      assert(Complain(dummyRef).dateInMillis <= currentTimeMillis)
     }
     "throw an IllegalArgumentException when 'FindBookByAuthor.author' is empty" in {
-      intercept[IllegalArgumentException] { FindBookByAuthor("") }
+      intercept[IllegalArgumentException] { FindBookByAuthor("", dummyRef) }
     }
     "throw an IllegalArgumentException when 'FindBookByIsbn.isbn' is empty" in {
-      intercept[IllegalArgumentException] { FindBookByIsbn("") }
+      intercept[IllegalArgumentException] { FindBookByIsbn("", dummyRef) }
     }
     "throw an IllegalArgumentException when 'FindBookByTopic.topic' is empty" in {
-      intercept[IllegalArgumentException] { FindBookByTopic(Set()) }
+      intercept[IllegalArgumentException] { FindBookByTopic(Set(), dummyRef) }
     }
     "throw an IllegalArgumentException when 'FindBookByTitle.title' is empty" in {
-      intercept[IllegalArgumentException] { FindBookByTitle("") }
+      intercept[IllegalArgumentException] { FindBookByTitle("", dummyRef) }
     }
   }
 

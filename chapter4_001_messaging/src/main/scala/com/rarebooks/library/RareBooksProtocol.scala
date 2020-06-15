@@ -1,6 +1,7 @@
 package com.rarebooks.library
 
 import java.lang.System.currentTimeMillis
+import akka.actor.typed.{ ActorRef }
 
 /*
  * The shared data structures and messages for the rare books info service.
@@ -84,7 +85,7 @@ object RareBooksProtocol {
    *
    * @param dateInMillis date message was created
    */
-  final case class Complain(dateInMillis: Long = currentTimeMillis) extends Msg
+  final case class Complain(replyTo: ActorRef[Msg], dateInMillis: Long = currentTimeMillis) extends Msg
 
   /**
    * Credit message
@@ -99,7 +100,7 @@ object RareBooksProtocol {
    * @param author author to search for
    * @param dateInMillis date message was created
    */
-  final case class FindBookByAuthor(author: String, dateInMillis: Long = currentTimeMillis) extends Msg {
+  final case class FindBookByAuthor(author: String, replyTo: ActorRef[Msg], dateInMillis: Long = currentTimeMillis) extends Msg {
     require(author.nonEmpty, "Author required.")
   }
 
@@ -109,7 +110,7 @@ object RareBooksProtocol {
    * @param isbn isbn to search for
    * @param dateInMillis date message was created
    */
-  final case class FindBookByIsbn(isbn: String, dateInMillis: Long = currentTimeMillis) extends Msg {
+  final case class FindBookByIsbn(isbn: String, replyTo: ActorRef[Msg], dateInMillis: Long = currentTimeMillis) extends Msg {
     require(isbn.nonEmpty, "Isbn required.")
   }
 
@@ -119,7 +120,7 @@ object RareBooksProtocol {
    * @param topic set of topics to search for
    * @param dateInMillis date message was created
    */
-  final case class FindBookByTopic(topic: Set[Topic], dateInMillis: Long = currentTimeMillis) extends Msg {
+  final case class FindBookByTopic(topic: Set[Topic], replyTo: ActorRef[Msg], dateInMillis: Long = currentTimeMillis) extends Msg {
     require(topic.nonEmpty, "Topic required.")
   }
 
@@ -129,7 +130,7 @@ object RareBooksProtocol {
    * @param title title to search for
    * @param dateInMillis date message was created
    */
-  final case class FindBookByTitle(title: String, dateInMillis: Long = currentTimeMillis) extends Msg {
+  final case class FindBookByTitle(title: String, replyTo: ActorRef[Msg], dateInMillis: Long = currentTimeMillis) extends Msg {
     require(title.nonEmpty, "Title required.")
   }
 

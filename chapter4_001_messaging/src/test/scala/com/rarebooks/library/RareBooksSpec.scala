@@ -5,6 +5,7 @@ import akka.actor.typed.{ Behavior }
 import akka.actor.testkit.typed.CapturedLogEvent
 import akka.actor.testkit.typed.Effect.{ Spawned }
 import akka.actor.testkit.typed.scaladsl.BehaviorTestKit
+import akka.actor.testkit.typed.scaladsl.TestInbox
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.actor.testkit.typed.scaladsl.LoggingTestKit
 import akka.actor.testkit.typed.scaladsl.ManualTime
@@ -27,7 +28,8 @@ class RareBooksSynchronousSpec extends BaseSpec {
       import RareBooksProtocol._
 
       val testKit = BehaviorTestKit(RareBooks())
-      val msg = FindBookByTopic(Set(Greece))
+      val customer = TestInbox[Msg]()
+      val msg = FindBookByTopic(Set(Greece), customer.ref)
       testKit.run(msg)
       var librarianInbox = testKit.childInbox[Msg](childActorName)
       librarianInbox.expectMessage(msg)
@@ -132,11 +134,12 @@ class RareBooksAsyncSpec
         import RareBooksProtocol._
 
         val rareBooks = spawn(rareBooksTestApply(), "rareBooks-sending")
-        val probe = testKit.createTestProbe[Msg]()
-        val msg = FindBookByTopic(Set(Greece))
-        rareBooks ! RareBooks.ChangeLibrarian(probe.ref)
+        val customerProbe = testKit.createTestProbe[Msg]()
+        val librarianProbe = testKit.createTestProbe[Msg]()
+        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+        rareBooks ! RareBooks.ChangeLibrarian(librarianProbe.ref)
         rareBooks ! msg
-        probe.expectMessage(msg)
+        librarianProbe.expectMessage(msg)
       }
 
     }
