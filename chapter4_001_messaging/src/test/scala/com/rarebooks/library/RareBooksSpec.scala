@@ -132,15 +132,17 @@ class RareBooksAsyncSpec
 
     "Sending FindBookByTopic" should {
 
-      "forward to librarian" in {
-        import RareBooksProtocol._
+      import RareBooksProtocol._
 
-        val actorName = "rareBooks-sending"
-        val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
-        val customerProbe = testKit.createTestProbe[Msg]()
+      val actorName = "rareBooks-sending"
+
+      "forward to librarian" in {
         val librarianProbe = testKit.createTestProbe[Msg]()
-        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+        val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
         rareBooks ! RareBooks.ChangeLibrarian(librarianProbe.ref)
+
+        val customerProbe = testKit.createTestProbe[Msg]()
+        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
         rareBooks ! msg
         librarianProbe.expectMessage(msg)
       }
