@@ -46,7 +46,8 @@ class RareBooksAsyncSpec
   val alreadyOpenLog = "We're already open."
   val closeLog = "Time to close!"
   val alreadyClosedLog = "We're already closed."
-  val reportLog = "Time to produce a report."
+  val reportLog = "0 requests processed today."
+  val reportLogOne = "1 requests processed today."
 
   // special version of apply() to enable testing of internals
   def rareBooksTestApply(name: String): Behavior[RareBooksProtocol.BaseMsg] =
@@ -134,10 +135,9 @@ class RareBooksAsyncSpec
 
       import RareBooksProtocol._
 
-      val actorName = "rareBooks-sending"
-
       "forward to librarian" in {
         val librarianProbe = testKit.createTestProbe[Msg]()
+        val actorName = "rareBooks-sending1"
         val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
         rareBooks ! RareBooks.ChangeLibrarian(librarianProbe.ref)
 
@@ -145,6 +145,19 @@ class RareBooksAsyncSpec
         val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
         rareBooks ! msg
         librarianProbe.expectMessage(msg)
+      }
+
+      s"log '${reportLogOne}' at info after closing" in {
+        val actorName = "rareBooks-sending2"
+        val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
+
+        val customerProbe = testKit.createTestProbe[Msg]()
+        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+        rareBooks ! msg
+
+        LoggingTestKit.info(reportLogOne).expect {
+          rareBooks ! RareBooks.Close
+        }
       }
 
     }

@@ -34,6 +34,7 @@ class RareBooks(
   import RareBooksProtocol._
 
   private var librarian = createLibrarian()
+  private var requestsToday: Int = 0
 
   private def init(): Unit = {
     logInfo("RareBooks started")
@@ -50,6 +51,7 @@ class RareBooks(
       case msg: Msg =>
         logInfo("Received a Msg. Forwarding it to librarian")
         librarian ! msg
+        requestsToday += 1
         Behaviors.same
       case Open =>
         logInfo("We're already open.")
@@ -77,7 +79,7 @@ class RareBooks(
         logInfo("We're already closed.")
         Behaviors.same
       case Report =>
-        logInfo("Time to produce a report.")
+        logInfo(s"${requestsToday} requests processed today.")
         Behaviors.same
       case ChangeLibrarian(ref) =>
         changeLibrarian(ref)
