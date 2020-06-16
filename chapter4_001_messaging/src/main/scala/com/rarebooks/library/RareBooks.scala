@@ -14,19 +14,22 @@ object RareBooks {
 
   private case object TimerKey
 
-  def apply(): Behavior[RareBooksProtocol.Msg] =
-    setup()
+  def apply(name: String): Behavior[RareBooksProtocol.Msg] =
+    setup(name)
     .narrow
 
-  private[library] def setup(): Behavior[RareBooksProtocol.BaseMsg] =
+  private[library] def setup(name: String): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
       Behaviors.withTimers {
-        timers => new RareBooks(context, timers).open()
+        timers => new RareBooks(context, timers, name).open()
       }
     }
 
 }
-class RareBooks(context: ActorContext[RareBooksProtocol.BaseMsg], timers: TimerScheduler[RareBooksProtocol.BaseMsg]) {
+class RareBooks(
+  context: ActorContext[RareBooksProtocol.BaseMsg],
+  timers: TimerScheduler[RareBooksProtocol.BaseMsg],
+  bookStoreName: String) {
   import RareBooks._
   import RareBooksProtocol._
 
@@ -39,22 +42,25 @@ class RareBooks(context: ActorContext[RareBooksProtocol.BaseMsg], timers: TimerS
 
   init()
 
+  private def logInfo(message: String): Unit =
+    context.log.info(s"${bookStoreName}: ${message}")
+
   private def open(): Behavior[BaseMsg] =
     Behaviors.receiveMessage {
       case msg: Msg =>
-        context.log.info("Received a Msg. Forwarding it to librarian")
+        logInfo("Received a Msg. Forwarding it to librarian")
         librarian ! msg
         Behaviors.same
       case Open =>
-        context.log.info("We're already open.")
+        logInfo("We're already open.")
         Behaviors.same
       case Close =>
-        context.log.info("Time to close!")
+        logInfo("Time to close!")
         timers.startSingleTimer(TimerKey, Open, FiniteDuration(10000, Millis))
         context.self ! Report
         closed()
       case Report =>
-        context.log.info("We only produce reports while closed")
+        logInfo("We only produce reports while closed")
         Behaviors.same
       case ChangeLibrarian(ref) =>
         changeLibrarian(ref)
@@ -64,14 +70,14 @@ class RareBooks(context: ActorContext[RareBooksProtocol.BaseMsg], timers: TimerS
   private def closed(): Behavior[BaseMsg] =
     Behaviors.receiveMessage {
       case Open =>
-        context.log.info("Time to open up!")
+        logInfo("Time to open up!")
         timers.startSingleTimer(TimerKey, Close, FiniteDuration(10000, Millis))
         open()
       case Close =>
-        context.log.info("We're already closed.")
+        logInfo("We're already closed.")
         Behaviors.same
       case Report =>
-        context.log.info("Time to produce a report.")
+        logInfo("Time to produce a report.")
         Behaviors.same
       case ChangeLibrarian(ref) =>
         changeLibrarian(ref)

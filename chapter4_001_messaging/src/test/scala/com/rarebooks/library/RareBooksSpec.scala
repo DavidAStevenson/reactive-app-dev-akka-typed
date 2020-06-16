@@ -20,14 +20,14 @@ class RareBooksSynchronousSpec extends BaseSpec {
     val childActorName = "librarian"
 
     s"spawn child actor named ${childActorName}" in {
-      val testKit = BehaviorTestKit(RareBooks())
+      val testKit = BehaviorTestKit(RareBooks("rareBooks-synchronous"))
       testKit.expectEffectType[Spawned[Librarian]].childName should === (childActorName)
     }
 
     "forward to librarian" in {
       import RareBooksProtocol._
 
-      val testKit = BehaviorTestKit(RareBooks())
+      val testKit = BehaviorTestKit(RareBooks("rareBooks-synchronous"))
       val customer = TestInbox[Msg]()
       val msg = FindBookByTopic(Set(Greece), customer.ref)
       testKit.run(msg)
@@ -49,17 +49,18 @@ class RareBooksAsyncSpec
   val reportLog = "Time to produce a report."
 
   // special version of apply() to enable testing of internals
-  def rareBooksTestApply(): Behavior[RareBooksProtocol.BaseMsg] =
-    RareBooks.setup()
+  def rareBooksTestApply(name: String): Behavior[RareBooksProtocol.BaseMsg] =
+    RareBooks.setup(name)
 
 
   "RareBooks" can {
 
     "initialize" should {
 
+      val actorName = "rareBooks-init"
       s"log '${initLog}' when created" ignore {
-        LoggingTestKit.info(initLog).expect {
-          val rareBooks = testKit.spawn(RareBooks(), "rareBooks-init")
+        LoggingTestKit.info(s"${actorName}: ${initLog}").expect {
+          val rareBooks = testKit.spawn(RareBooks(actorName), actorName)
         }
       }
 
@@ -68,7 +69,8 @@ class RareBooksAsyncSpec
     "operate independently" should {
 
       val manualTime: ManualTime = ManualTime()
-      val rareBooks = spawn(rareBooksTestApply(), "rareBooks-operate")
+      val actorName = "rareBooks-operate"
+      val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
 
       "open up when initially commanded to open" ignore {
         LoggingTestKit.info(openLog).expect {
@@ -133,7 +135,8 @@ class RareBooksAsyncSpec
       "forward to librarian" in {
         import RareBooksProtocol._
 
-        val rareBooks = spawn(rareBooksTestApply(), "rareBooks-sending")
+        val actorName = "rareBooks-sending"
+        val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
         val customerProbe = testKit.createTestProbe[Msg]()
         val librarianProbe = testKit.createTestProbe[Msg]()
         val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
