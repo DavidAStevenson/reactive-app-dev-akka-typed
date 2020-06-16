@@ -36,7 +36,7 @@ class RareBooks(
   private var librarian = createLibrarian()
 
   private def init(): Unit = {
-    context.log.info("RareBooks started")
+    logInfo("RareBooks started")
     timers.startSingleTimer(TimerKey, Close, FiniteDuration(10000, Millis))
   }
 
