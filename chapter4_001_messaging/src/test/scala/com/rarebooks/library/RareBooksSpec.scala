@@ -11,6 +11,7 @@ import akka.actor.testkit.typed.scaladsl.LoggingTestKit
 import akka.actor.testkit.typed.scaladsl.ManualTime
 import org.slf4j.event.Level
 import org.scalatest.wordspec.AnyWordSpecLike
+import com.typesafe.config.ConfigFactory
 
 class RareBooksSynchronousSpec extends BaseSpec {
 
@@ -38,7 +39,7 @@ class RareBooksSynchronousSpec extends BaseSpec {
 }
 
 class RareBooksAsyncSpec
-  extends ScalaTestWithActorTestKit(ManualTime.config)
+  extends ScalaTestWithActorTestKit(ManualTime.config.withFallback(ConfigFactory.load()))
   with AnyWordSpecLike {
 
   val initLog = "RareBooks started"
@@ -73,6 +74,13 @@ class RareBooksAsyncSpec
       val actorName = "rareBooks-operate"
       val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
 
+      val conf = ConfigFactory.load()
+      val residualSecs = 1
+      val openDurationSecs = conf.getDuration("rare-books.open-duration", SECONDS)
+      val checkOpenDuration = openDurationSecs - residualSecs
+      val closeDurationSecs = conf.getDuration("rare-books.close-duration", SECONDS)
+      val checkClosedDuration = closeDurationSecs - residualSecs
+
       "open up when initially commanded to open" ignore {
         LoggingTestKit.info(openLog).expect {
           rareBooks ! RareBooks.Open
@@ -85,11 +93,11 @@ class RareBooksAsyncSpec
         }
       }
 
-      "stay open for at least 9 seconds" in {
+      s"stay open for at least ${checkOpenDuration} seconds" in {
         LoggingTestKit
           .info(closeLog)
           .withOccurrences(0).expect {
-            manualTime.timePasses(9.seconds)
+            manualTime.timePasses(checkOpenDuration.seconds)
           }
       }
 
@@ -100,7 +108,7 @@ class RareBooksAsyncSpec
           .withMessageRegex(s"[${closeLog}][${reportLog}]")
           .withOccurrences(2)
           .expect {
-            manualTime.timePasses(1.seconds)
+            manualTime.timePasses(residualSecs.seconds)
           }
       }
 
@@ -116,17 +124,17 @@ class RareBooksAsyncSpec
         }
       }
 
-      "stay closed for at least 9 seconds" in {
+      s"stay closed for at least ${checkClosedDuration} seconds" in {
         LoggingTestKit
           .info(openLog)
           .withOccurrences(0).expect {
-            manualTime.timePasses(9.seconds)
+            manualTime.timePasses(checkClosedDuration.seconds)
           }
       }
 
       "re-open after being closed for a while" in {
         LoggingTestKit.info(openLog).expect {
-          manualTime.timePasses(1.seconds)
+          manualTime.timePasses(residualSecs.seconds)
         }
       }
     }

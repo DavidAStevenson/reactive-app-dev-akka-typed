@@ -1,6 +1,6 @@
 package com.rarebooks.library
 
-import scala.concurrent.duration.{ MILLISECONDS => Millis, FiniteDuration }
+import scala.concurrent.duration.{ MILLISECONDS => Millis, FiniteDuration, Duration, SECONDS }
 import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, TimerScheduler }
 
@@ -33,12 +33,18 @@ class RareBooks(
   import RareBooks._
   import RareBooksProtocol._
 
+  private val openDuration: FiniteDuration =
+    Duration(context.system.settings.config.getDuration("rare-books.open-duration", Millis), Millis)
+
+  private val closeDuration: FiniteDuration =
+    Duration(context.system.settings.config.getDuration("rare-books.close-duration", Millis), Millis)
+
   private var librarian = createLibrarian()
   private var requestsToday: Int = 0
 
   private def init(): Unit = {
     logInfo("RareBooks started")
-    timers.startSingleTimer(TimerKey, Close, FiniteDuration(10000, Millis))
+    timers.startSingleTimer(TimerKey, Close, openDuration)
   }
 
   init()
@@ -58,7 +64,7 @@ class RareBooks(
         Behaviors.same
       case Close =>
         logInfo("Time to close!")
-        timers.startSingleTimer(TimerKey, Open, FiniteDuration(10000, Millis))
+        timers.startSingleTimer(TimerKey, Open, closeDuration)
         context.self ! Report
         closed()
       case Report =>
@@ -73,7 +79,7 @@ class RareBooks(
     Behaviors.receiveMessage {
       case Open =>
         logInfo("Time to open up!")
-        timers.startSingleTimer(TimerKey, Close, FiniteDuration(10000, Millis))
+        timers.startSingleTimer(TimerKey, Close, openDuration)
         open()
       case Close =>
         logInfo("We're already closed.")
