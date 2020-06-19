@@ -2,7 +2,7 @@ package com.rarebooks.library
 
 import scala.concurrent.duration.{ MILLISECONDS => Millis, FiniteDuration, Duration, SECONDS }
 import akka.actor.typed.{ ActorRef, Behavior }
-import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, TimerScheduler }
+import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, TimerScheduler, StashBuffer }
 
 object RareBooks {
 
@@ -19,9 +19,11 @@ object RareBooks {
     .narrow
 
   private[library] def setup(name: String): Behavior[RareBooksProtocol.BaseMsg] =
-    Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
-      Behaviors.withTimers {
-        timers => new RareBooks(context, timers, name).open()
+    Behaviors.withStash(5) { buffer =>
+      Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
+        Behaviors.withTimers {
+          timers => new RareBooks(context, timers, buffer, name).open()
+        }
       }
     }
 
@@ -29,6 +31,7 @@ object RareBooks {
 class RareBooks(
   context: ActorContext[RareBooksProtocol.BaseMsg],
   timers: TimerScheduler[RareBooksProtocol.BaseMsg],
+  buffer: StashBuffer[RareBooksProtocol.BaseMsg],
   bookStoreName: String) {
   import RareBooks._
   import RareBooksProtocol._
@@ -80,7 +83,7 @@ class RareBooks(
       case Open =>
         logInfo("Time to open up!")
         timers.startSingleTimer(TimerKey, Close, openDuration)
-        open()
+        buffer.unstashAll(open())
       case Close =>
         logInfo("We're already closed.")
         Behaviors.same
@@ -90,7 +93,8 @@ class RareBooks(
       case ChangeLibrarian(ref) =>
         changeLibrarian(ref)
         Behaviors.same
-      case _ =>
+      case other =>
+        buffer.stash(other)
         Behaviors.same
     }
 
