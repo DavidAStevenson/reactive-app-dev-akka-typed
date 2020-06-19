@@ -161,7 +161,34 @@ class RareBooksAsyncSpec
           rareBooks ! RareBooks.Close
         }
       }
+    }
 
+    "Stash messages" should {
+
+      import RareBooksProtocol._
+
+      val manualTime: ManualTime = ManualTime()
+
+      val conf = ConfigFactory.load()
+      val residualSecs = 1
+      val closeDurationSecs = conf.getDuration("rare-books.close-duration", SECONDS)
+      val checkClosedDuration = closeDurationSecs - residualSecs
+
+      "stash messages while closed and process them after opening" in {
+        val librarianProbe = testKit.createTestProbe[Msg]()
+        val actorName = "rareBooks-sending3"
+        val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
+        val customerProbe = testKit.createTestProbe[Msg]()
+        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+
+        rareBooks ! RareBooks.ChangeLibrarian(librarianProbe.ref)
+        rareBooks ! RareBooks.Close
+        rareBooks ! msg
+
+        manualTime.expectNoMessageFor(checkClosedDuration.seconds, librarianProbe)
+        manualTime.timePasses(residualSecs.seconds)
+        librarianProbe.expectMessage(msg)
+      }
     }
 
   }

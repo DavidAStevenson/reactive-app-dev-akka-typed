@@ -90,6 +90,8 @@ class RareBooks(
       case ChangeLibrarian(ref) =>
         changeLibrarian(ref)
         Behaviors.same
+      case _ =>
+        Behaviors.same
     }
 
   private def createLibrarian(): ActorRef[Msg] = {
