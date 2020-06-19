@@ -47,8 +47,9 @@ class RareBooksAsyncSpec
   val alreadyOpenLog = "We're already open."
   val closeLog = "Time to close!"
   val alreadyClosedLog = "We're already closed."
-  val reportLog = "0 requests processed today."
-  val reportLogOne = "1 requests processed today."
+  val reportLog = "0 requests processed today. Total requests processed = 0"
+  val reportLogOne = "1 requests processed today. Total requests processed = 1"
+  val reportLogTwo = "1 requests processed today. Total requests processed = 2"
 
   // special version of apply() to enable testing of internals
   def rareBooksTestApply(name: String): Behavior[RareBooksProtocol.BaseMsg] =
@@ -161,6 +162,27 @@ class RareBooksAsyncSpec
           rareBooks ! RareBooks.Close
         }
       }
+
+      s"log '${reportLogTwo}' at info after two closes" in {
+        val actorName = "rareBooks-sending3"
+        val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
+
+        val customerProbe = testKit.createTestProbe[Msg]()
+        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+        rareBooks ! msg
+
+        LoggingTestKit.info(reportLogOne).expect {
+          rareBooks ! RareBooks.Close
+        }
+
+        rareBooks ! msg
+        rareBooks ! RareBooks.Open
+
+        LoggingTestKit.info(reportLogTwo).expect {
+          rareBooks ! RareBooks.Close
+        }
+
+      }
     }
 
     "Stash messages" should {
@@ -176,7 +198,7 @@ class RareBooksAsyncSpec
 
       "stash messages while closed and process them after opening" in {
         val librarianProbe = testKit.createTestProbe[Msg]()
-        val actorName = "rareBooks-sending3"
+        val actorName = "rareBooks-stashing"
         val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
         val customerProbe = testKit.createTestProbe[Msg]()
         val msg = FindBookByTopic(Set(Greece), customerProbe.ref)

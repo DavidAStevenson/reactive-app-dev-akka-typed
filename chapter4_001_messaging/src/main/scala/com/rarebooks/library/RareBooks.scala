@@ -44,6 +44,7 @@ class RareBooks(
 
   private var librarian = createLibrarian()
   private var requestsToday: Int = 0
+  private var totalRequests: Int = 0
 
   private def init(): Unit = {
     logInfo("RareBooks started")
@@ -88,7 +89,9 @@ class RareBooks(
         logInfo("We're already closed.")
         Behaviors.same
       case Report =>
-        logInfo(s"${requestsToday} requests processed today.")
+        totalRequests += requestsToday
+        logInfo(s"${requestsToday} requests processed today. Total requests processed = ${totalRequests}")
+        requestsToday = 0
         Behaviors.same
       case ChangeLibrarian(ref) =>
         changeLibrarian(ref)
