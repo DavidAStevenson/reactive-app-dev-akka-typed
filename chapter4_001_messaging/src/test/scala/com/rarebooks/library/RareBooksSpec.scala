@@ -81,12 +81,6 @@ class RareBooksAsyncSpec
       val closeDurationSecs = conf.getDuration("rare-books.close-duration", SECONDS)
       val checkClosedDuration = closeDurationSecs - residualSecs
 
-      "open up when initially commanded to open" ignore {
-        LoggingTestKit.info(openLog).expect {
-          rareBooks ! RareBooks.Open
-        }
-      }
-
       s"log '${alreadyOpenLog}' at info, when already opened" in {
         LoggingTestKit.info(alreadyOpenLog).expect {
           rareBooks ! RareBooks.Open
