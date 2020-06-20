@@ -18,30 +18,30 @@ class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
   protected def ready(): Behavior[RareBooksProtocol.Msg] =
     Behaviors.receiveMessage {
       case FindBookByTopic(topic, replyTo, _) =>
-        val result = Catalog.findBookByTopic(topic)
-        result match {
-          case Some(b) => replyTo ! BookFound(result.get)
+        val book = Catalog.findBookByTopic(topic)
+        book match {
+          case Some(b) => replyTo ! BookFound(book.get)
           case None => replyTo ! BookNotFound(s"No book(s) matching ${topic}.")
         }
         Behaviors.same
       case FindBookByTitle(title, replyTo, _) =>
-        val result = Catalog.findBookByTitle(title)
-        result match {
-          case Some(b) => replyTo ! BookFound(result.get)
+        val book = Catalog.findBookByTitle(title)
+        book match {
+          case Some(b) => replyTo ! BookFound(book.get)
           case None => replyTo ! BookNotFound(s"No book(s) matching ${title}.")
         }
         Behaviors.same
       case FindBookByAuthor(author, replyTo, _) =>
-        val result = Catalog.findBookByAuthor(author)
-        result match {
-          case Some(b) => replyTo ! BookFound(result.get)
+        val book = Catalog.findBookByAuthor(author)
+        book match {
+          case Some(b) => replyTo ! BookFound(book.get)
           case None => replyTo ! BookNotFound(s"No book(s) matching ${author}.")
         }
         Behaviors.same
       case FindBookByIsbn(isbn, replyTo, _) =>
-        val result = Catalog.findBookByIsbn(isbn)
-        result match {
-          case Some(b) => replyTo ! BookFound(result.get)
+        val book = Catalog.findBookByIsbn(isbn)
+        book match {
+          case Some(b) => replyTo ! BookFound(book.get)
           case None => replyTo ! BookNotFound(s"No book(s) matching ${isbn}.")
         }
         Behaviors.same
