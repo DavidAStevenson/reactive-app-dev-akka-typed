@@ -5,10 +5,32 @@ import org.scalatest.wordspec.AnyWordSpecLike
 
 class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
-  "Receiving FindBookByTopic" should {
+  import Catalog._
+  import RareBooksProtocol._
 
-    import Catalog._
-    import RareBooksProtocol._
+  "Receiving FindBookByTitle" should {
+    "result in BookFound, when the book exists" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val title = "The Epic of Gilgamesh"
+      val msg = FindBookByTitle(title, customerProbe.ref)
+      val librarian = spawn(Librarian())
+      librarian ! msg
+      val result = customerProbe.expectMessageType[BookFound]
+      result.books shouldBe List(theEpicOfGilgamesh)
+    }
+
+    "result in BookNotFound, when the book doesn't exist" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val title = "Swiss Family Robinson"
+      val msg = FindBookByTitle(title, customerProbe.ref)
+      val librarian = spawn(Librarian())
+      librarian ! msg
+      val result = customerProbe.expectMessageType[BookNotFound]
+      result.reason shouldBe "No book(s) matching Swiss Family Robinson."
+    }
+  }
+
+  "Receiving FindBookByTopic" should {
 
     "result in BookFound, when the book exists" in {
       val customerProbe = testKit.createTestProbe[Msg]()
