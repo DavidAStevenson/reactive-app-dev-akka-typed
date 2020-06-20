@@ -4,6 +4,16 @@ import akka.actor.typed.{ Behavior }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
 
 object Librarian {
+
+  import RareBooksProtocol._
+
+  def optToEither[String](value: String, func: String => Option[List[BookCard]]):
+    Either[BookNotFound, BookFound] =
+      func(value) match {
+        case Some(b) => Right(BookFound(b))
+        case None    => Left(BookNotFound(s"No book(s) matching ${value}."))
+      }
+
   def apply(): Behavior[RareBooksProtocol.Msg] = Behaviors.setup { context =>
       new Librarian(context).ready()
   }
@@ -13,6 +23,7 @@ class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
 
   context.log.info("Librarian started")
 
+  import Librarian._
   import RareBooksProtocol._
 
   protected def ready(): Behavior[RareBooksProtocol.Msg] =
@@ -25,11 +36,11 @@ class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
         }
         Behaviors.same
       case FindBookByTitle(title, replyTo, _) =>
-        val book = Catalog.findBookByTitle(title)
-        book match {
-          case Some(b) => replyTo ! BookFound(book.get)
-          case None => replyTo ! BookNotFound(s"No book(s) matching ${title}.")
-        }
+        val result = optToEither(title, Catalog.findBookByTitle)
+        result.fold (
+          fa => replyTo ! fa,
+          fb => replyTo ! fb
+        )
         Behaviors.same
       case FindBookByAuthor(author, replyTo, _) =>
         val book = Catalog.findBookByAuthor(author)
