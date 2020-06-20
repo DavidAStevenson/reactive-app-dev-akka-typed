@@ -1,5 +1,6 @@
 package com.rarebooks.library
 
+import akka.actor.typed.{ Behavior }
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import org.scalatest.wordspec.AnyWordSpecLike
 
@@ -101,6 +102,46 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       librarian ! msg
       val result = customerProbe.expectMessageType[BookNotFound]
       result.reason shouldBe s"No book(s) matching ${isbn}."
+    }
+  }
+
+  "Receiving a FindBook request" should {
+
+    def librarianTestApply(): Behavior[RareBooksProtocol.BaseMsg] =
+      Librarian.setup()
+
+    "transition to busy state after receiving a request, when ready" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val isbn = "0123456789"
+      val msg = FindBookByIsbn(isbn, customerProbe.ref)
+      val librarian = spawn(librarianTestApply())
+
+      val testProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
+      librarian ! Librarian.GetState(testProbe.ref)
+      testProbe.expectMessage(Librarian.ReadyState)
+
+      librarian ! msg
+
+      testProbe.expectMessage(Librarian.BusyState)
+    }
+
+    "remain in busy state after receiving a request, when busy" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val isbn = "0123456789"
+      val msg = FindBookByIsbn(isbn, customerProbe.ref)
+      val librarian = spawn(librarianTestApply())
+
+      val testProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
+      librarian ! Librarian.GetState(testProbe.ref)
+      testProbe.expectMessage(Librarian.ReadyState)
+
+      librarian ! msg
+
+      testProbe.expectMessage(Librarian.BusyState)
+
+      librarian ! msg
+
+      testProbe.expectMessage(Librarian.BusyState)
     }
   }
 }

@@ -7,6 +7,13 @@ object Librarian {
 
   import RareBooksProtocol._
 
+  sealed trait PrivateCommand extends RareBooksProtocol.BaseMsg
+  private[library] case class GetState(replyTo: ActorRef[PrivateResponse]) extends PrivateCommand
+
+  sealed trait PrivateResponse extends RareBooksProtocol.BaseMsg
+  private[library] case object BusyState extends PrivateResponse
+  private[library] case object ReadyState extends PrivateResponse
+
   def optToEither[T](value: T, func: T => Option[List[BookCard]]):
     Either[BookNotFound, BookFound] =
       func(value) match {
@@ -15,18 +22,25 @@ object Librarian {
       }
 
   def apply(): Behavior[RareBooksProtocol.Msg] = Behaviors.setup { context =>
-      new Librarian(context).ready()
+    setup().
+    narrow
   }
+
+  private[library] def setup(): Behavior[RareBooksProtocol.BaseMsg] =
+    Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
+      new Librarian(context).ready()
+    }
+
 } 
 
-class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
+class Librarian(context: ActorContext[RareBooksProtocol.BaseMsg]) {
 
   context.log.info("Librarian started")
 
   import Librarian._
   import RareBooksProtocol._
 
-  protected def ready(): Behavior[RareBooksProtocol.Msg] =
+  protected def ready(): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.receiveMessage {
       case FindBookByTopic(topic, replyTo, _) =>
         val result = optToEither(topic, Catalog.findBookByTopic)
