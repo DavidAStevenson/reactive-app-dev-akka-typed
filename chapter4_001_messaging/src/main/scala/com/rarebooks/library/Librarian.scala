@@ -24,9 +24,16 @@ class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
           case None => replyTo ! BookNotFound(s"No book(s) matching ${topic}.")
         }
         Behaviors.same
+      case FindBookByTitle(title, replyTo, _) =>
+        val result = Catalog.findBookByTitle(title)
+        result match {
+          case Some(b) => replyTo ! BookFound(result.get)
+          case None => replyTo ! BookNotFound(s"No book(s) matching ${title}.")
+        }
+        Behaviors.same
       case _ =>
         context.log.info("Librarian ignoring messages")
-      Behaviors.same
+        Behaviors.same
     }
   
 }
