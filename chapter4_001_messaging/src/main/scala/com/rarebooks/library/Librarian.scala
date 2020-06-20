@@ -48,8 +48,8 @@ class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
 
   private def process(result: Either[BookNotFound, BookFound], replyTo: ActorRef[Msg]): Unit = {
     result.fold (
-      fa => replyTo ! fa,
-      fb => replyTo ! fb
+      bookNotFound => replyTo ! bookNotFound,
+      bookFound    => replyTo ! bookFound
     )
   }
 
