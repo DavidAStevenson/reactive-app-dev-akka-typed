@@ -13,8 +13,17 @@ class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
 
   context.log.info("Librarian started")
 
+  import RareBooksProtocol._
+
   protected def ready(): Behavior[RareBooksProtocol.Msg] =
     Behaviors.receiveMessage {
+      case FindBookByTopic(topic, replyTo, _) =>
+        val result = Catalog.findBookByTopic(topic)
+        result match {
+          case Some(b) => replyTo ! BookFound(result.get)
+          case None => ???
+        }
+        Behaviors.same
       case _ =>
         context.log.info("Librarian ignoring messages")
       Behaviors.same

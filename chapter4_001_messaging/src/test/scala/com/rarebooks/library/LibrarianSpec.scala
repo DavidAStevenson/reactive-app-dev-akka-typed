@@ -17,8 +17,9 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val librarian = spawn(Librarian(), "librarian")
       librarian ! msg
 
-      val result = BookFound(List[BookCard](phaedrus, theHistories))
-      customerProbe.expectMessage(result)
+      val receive = BookFound(List[BookCard](phaedrus, theHistories))
+      val result = customerProbe.expectMessageType[BookFound]
+      result.books shouldBe receive.books
     }
   }
 }
