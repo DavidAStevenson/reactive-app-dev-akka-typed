@@ -7,7 +7,7 @@ object Librarian {
 
   import RareBooksProtocol._
 
-  def optToEither[String](value: String, func: String => Option[List[BookCard]]):
+  def optToEither[T](value: T, func: T => Option[List[BookCard]]):
     Either[BookNotFound, BookFound] =
       func(value) match {
         case Some(b) => Right(BookFound(b))
