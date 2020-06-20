@@ -9,6 +9,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   import RareBooksProtocol._
 
   "Receiving FindBookByTitle" should {
+
     "result in BookFound, when the book exists" in {
       val customerProbe = testKit.createTestProbe[Msg]()
       val title = "The Epic of Gilgamesh"
@@ -26,7 +27,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val librarian = spawn(Librarian())
       librarian ! msg
       val result = customerProbe.expectMessageType[BookNotFound]
-      result.reason shouldBe "No book(s) matching Swiss Family Robinson."
+      result.reason shouldBe s"No book(s) matching ${title}."
     }
   }
 
@@ -54,6 +55,52 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val receive = BookNotFound(s"No book(s) matching ${msg.topic}.")
       val result = customerProbe.expectMessageType[BookNotFound]
       result.reason shouldBe receive.reason
+    }
+  }
+
+  "Receiving FindBookByAuthor" should {
+
+    "result in BookFound, when the book exists" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val author = "Herodotus"
+      val msg = FindBookByAuthor(author, customerProbe.ref)
+      val librarian = spawn(Librarian())
+      librarian ! msg
+      val result = customerProbe.expectMessageType[BookFound]
+      result.books shouldBe List(theHistories)
+    }
+
+    "result in BookNotFound, when the book doesn't exist" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val author = "Robert Luis Stevenson"
+      val msg = FindBookByAuthor(author, customerProbe.ref)
+      val librarian = spawn(Librarian())
+      librarian ! msg
+      val result = customerProbe.expectMessageType[BookNotFound]
+      result.reason shouldBe s"No book(s) matching ${author}."
+    }
+  }
+
+  "Receiving FindBookByIsbn" should {
+
+    "result in BookFound, when the book exists" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val isbn = "0872202208"
+      val msg = FindBookByIsbn(isbn, customerProbe.ref)
+      val librarian = spawn(Librarian())
+      librarian ! msg
+      val result = customerProbe.expectMessageType[BookFound]
+      result.books shouldBe List(phaedrus)
+    }
+
+    "result in BookNotFound, when the book doesn't exist" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val isbn = "0123456789"
+      val msg = FindBookByIsbn(isbn, customerProbe.ref)
+      val librarian = spawn(Librarian())
+      librarian ! msg
+      val result = customerProbe.expectMessageType[BookNotFound]
+      result.reason shouldBe s"No book(s) matching ${isbn}."
     }
   }
 }
