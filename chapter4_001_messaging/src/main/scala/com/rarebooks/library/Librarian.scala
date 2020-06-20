@@ -1,6 +1,6 @@
 package com.rarebooks.library
 
-import akka.actor.typed.{ Behavior }
+import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
 
 object Librarian {
@@ -57,5 +57,12 @@ class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
         )
         Behaviors.same
     }
-  
+
+  private def process(result: Either[BookNotFound, BookFound], replyTo: ActorRef[Msg]): Unit = {
+    result.fold (
+      fa => replyTo ! fa,
+      fb => replyTo ! fb
+    )
+  }
+
 }
