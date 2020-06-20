@@ -29,11 +29,11 @@ class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
   protected def ready(): Behavior[RareBooksProtocol.Msg] =
     Behaviors.receiveMessage {
       case FindBookByTopic(topic, replyTo, _) =>
-        val book = Catalog.findBookByTopic(topic)
-        book match {
-          case Some(b) => replyTo ! BookFound(book.get)
-          case None => replyTo ! BookNotFound(s"No book(s) matching ${topic}.")
-        }
+        val result = optToEither(topic, Catalog.findBookByTopic)
+        result.fold (
+          fa => replyTo ! fa,
+          fb => replyTo ! fb
+        )
         Behaviors.same
       case FindBookByTitle(title, replyTo, _) =>
         val result = optToEither(title, Catalog.findBookByTitle)
