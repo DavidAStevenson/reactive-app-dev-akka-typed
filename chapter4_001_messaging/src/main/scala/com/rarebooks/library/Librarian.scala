@@ -43,18 +43,18 @@ class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
         )
         Behaviors.same
       case FindBookByAuthor(author, replyTo, _) =>
-        val book = Catalog.findBookByAuthor(author)
-        book match {
-          case Some(b) => replyTo ! BookFound(book.get)
-          case None => replyTo ! BookNotFound(s"No book(s) matching ${author}.")
-        }
+        val result = optToEither(author, Catalog.findBookByAuthor)
+        result.fold (
+          fa => replyTo ! fa,
+          fb => replyTo ! fb
+        )
         Behaviors.same
       case FindBookByIsbn(isbn, replyTo, _) =>
-        val book = Catalog.findBookByIsbn(isbn)
-        book match {
-          case Some(b) => replyTo ! BookFound(book.get)
-          case None => replyTo ! BookNotFound(s"No book(s) matching ${isbn}.")
-        }
+        val result = optToEither(isbn, Catalog.findBookByIsbn)
+        result.fold (
+          fa => replyTo ! fa,
+          fb => replyTo ! fb
+        )
         Behaviors.same
     }
   
