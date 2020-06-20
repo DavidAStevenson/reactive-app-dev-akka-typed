@@ -30,31 +30,19 @@ class Librarian(context: ActorContext[RareBooksProtocol.Msg]) {
     Behaviors.receiveMessage {
       case FindBookByTopic(topic, replyTo, _) =>
         val result = optToEither(topic, Catalog.findBookByTopic)
-        result.fold (
-          fa => replyTo ! fa,
-          fb => replyTo ! fb
-        )
+        process(result, replyTo)
         Behaviors.same
       case FindBookByTitle(title, replyTo, _) =>
         val result = optToEither(title, Catalog.findBookByTitle)
-        result.fold (
-          fa => replyTo ! fa,
-          fb => replyTo ! fb
-        )
+        process(result, replyTo)
         Behaviors.same
       case FindBookByAuthor(author, replyTo, _) =>
         val result = optToEither(author, Catalog.findBookByAuthor)
-        result.fold (
-          fa => replyTo ! fa,
-          fb => replyTo ! fb
-        )
+        process(result, replyTo)
         Behaviors.same
       case FindBookByIsbn(isbn, replyTo, _) =>
         val result = optToEither(isbn, Catalog.findBookByIsbn)
-        result.fold (
-          fa => replyTo ! fa,
-          fb => replyTo ! fb
-        )
+        process(result, replyTo)
         Behaviors.same
     }
 
