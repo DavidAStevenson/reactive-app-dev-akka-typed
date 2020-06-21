@@ -1,13 +1,18 @@
 package com.rarebooks.library
 
+import scala.concurrent.duration.{ MILLISECONDS => Millis, Duration, SECONDS }
 import akka.actor.typed.{ Behavior }
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import org.scalatest.wordspec.AnyWordSpecLike
+import com.typesafe.config.ConfigFactory
 
 class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
   import Catalog._
   import RareBooksProtocol._
+
+  val conf = ConfigFactory.load()
+  val findBookDuration = Duration(conf.getDuration("rare-books.open-duration", SECONDS), Millis)
 
   "Receiving FindBookByTitle" should {
 
@@ -15,7 +20,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val customerProbe = testKit.createTestProbe[Msg]()
       val title = "The Epic of Gilgamesh"
       val msg = FindBookByTitle(title, customerProbe.ref)
-      val librarian = spawn(Librarian())
+      val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
       val result = customerProbe.expectMessageType[BookFound]
       result.books shouldBe List(theEpicOfGilgamesh)
@@ -25,7 +30,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val customerProbe = testKit.createTestProbe[Msg]()
       val title = "Swiss Family Robinson"
       val msg = FindBookByTitle(title, customerProbe.ref)
-      val librarian = spawn(Librarian())
+      val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
       val result = customerProbe.expectMessageType[BookNotFound]
       result.reason shouldBe s"No book(s) matching ${title}."
@@ -38,7 +43,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val customerProbe = testKit.createTestProbe[Msg]()
       val msg = FindBookByTopic(Set[Topic](Greece), customerProbe.ref)
 
-      val librarian = spawn(Librarian())
+      val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
 
       val receive = BookFound(List[BookCard](phaedrus, theHistories))
@@ -50,7 +55,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val customerProbe = testKit.createTestProbe[Msg]()
       val msg = FindBookByTopic(Set[Topic](Unknown), customerProbe.ref)
 
-      val librarian = spawn(Librarian())
+      val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
 
       val receive = BookNotFound(s"No book(s) matching ${msg.topic}.")
@@ -65,7 +70,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val customerProbe = testKit.createTestProbe[Msg]()
       val author = "Herodotus"
       val msg = FindBookByAuthor(author, customerProbe.ref)
-      val librarian = spawn(Librarian())
+      val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
       val result = customerProbe.expectMessageType[BookFound]
       result.books shouldBe List(theHistories)
@@ -75,7 +80,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val customerProbe = testKit.createTestProbe[Msg]()
       val author = "Robert Luis Stevenson"
       val msg = FindBookByAuthor(author, customerProbe.ref)
-      val librarian = spawn(Librarian())
+      val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
       val result = customerProbe.expectMessageType[BookNotFound]
       result.reason shouldBe s"No book(s) matching ${author}."
@@ -88,7 +93,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val customerProbe = testKit.createTestProbe[Msg]()
       val isbn = "0872202208"
       val msg = FindBookByIsbn(isbn, customerProbe.ref)
-      val librarian = spawn(Librarian())
+      val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
       val result = customerProbe.expectMessageType[BookFound]
       result.books shouldBe List(phaedrus)
@@ -98,7 +103,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val customerProbe = testKit.createTestProbe[Msg]()
       val isbn = "0123456789"
       val msg = FindBookByIsbn(isbn, customerProbe.ref)
-      val librarian = spawn(Librarian())
+      val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
       val result = customerProbe.expectMessageType[BookNotFound]
       result.reason shouldBe s"No book(s) matching ${isbn}."
@@ -108,7 +113,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   "Receiving a FindBook request" should {
 
     def librarianTestApply(): Behavior[RareBooksProtocol.BaseMsg] =
-      Librarian.setup()
+      Librarian.setup(findBookDuration)
 
     "transition to busy state after receiving a request, when ready" in {
       val customerProbe = testKit.createTestProbe[Msg]()

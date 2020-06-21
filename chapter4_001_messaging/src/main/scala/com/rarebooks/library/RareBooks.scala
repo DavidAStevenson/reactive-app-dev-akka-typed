@@ -42,7 +42,10 @@ class RareBooks(
   private val closeDuration: FiniteDuration =
     Duration(context.system.settings.config.getDuration("rare-books.close-duration", Millis), Millis)
 
-  private var librarian = createLibrarian()
+  private val findBookDuration: FiniteDuration =
+    Duration(context.system.settings.config.getDuration("rare-books.librarian.find-book-duration", Millis), Millis)
+
+  private var librarian = createLibrarian(findBookDuration)
   private var requestsToday: Int = 0
   private var totalRequests: Int = 0
 
@@ -101,8 +104,8 @@ class RareBooks(
         Behaviors.same
     }
 
-  private def createLibrarian(): ActorRef[Msg] = {
-    context.spawn(Librarian(), "librarian")
+  private def createLibrarian(findBookDuration: FiniteDuration): ActorRef[Msg] = {
+    context.spawn(Librarian(findBookDuration), "librarian")
   }
 
   private def changeLibrarian(ref: ActorRef[Msg]) = {

@@ -1,5 +1,6 @@
 package com.rarebooks.library
 
+import scala.concurrent.duration.FiniteDuration
 import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
 
@@ -21,19 +22,19 @@ object Librarian {
         case None    => Left(BookNotFound(s"No book(s) matching ${value}."))
       }
 
-  def apply(): Behavior[RareBooksProtocol.Msg] = Behaviors.setup { context =>
-    setup().
+  def apply(findBookDuration: FiniteDuration): Behavior[RareBooksProtocol.Msg] = Behaviors.setup { context =>
+    setup(findBookDuration).
     narrow
   }
 
-  private[library] def setup(): Behavior[RareBooksProtocol.BaseMsg] =
+  private[library] def setup(findBookDuration: FiniteDuration): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
-      new Librarian(context).ready()
+      new Librarian(context, findBookDuration).ready()
     }
 
 } 
 
-class Librarian(context: ActorContext[RareBooksProtocol.BaseMsg]) {
+class Librarian(context: ActorContext[RareBooksProtocol.BaseMsg], findBookDuration: FiniteDuration) {
 
   context.log.info("Librarian started")
 
