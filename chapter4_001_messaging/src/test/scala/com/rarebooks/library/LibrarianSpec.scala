@@ -121,14 +121,14 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val msg = FindBookByIsbn(isbn, customerProbe.ref)
       val librarian = spawn(librarianTestApply())
 
-      val testProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
-      librarian ! Librarian.GetState(testProbe.ref)
-      testProbe.expectMessage(Librarian.Ready)
+      val stateProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Ready)
 
       librarian ! msg
 
-      librarian ! Librarian.GetState(testProbe.ref)
-      testProbe.expectMessage(Librarian.Busy)
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Busy)
     }
 
     "remain in busy state after receiving a request, when busy" in {
@@ -137,19 +137,19 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val msg = FindBookByIsbn(isbn, customerProbe.ref)
       val librarian = spawn(librarianTestApply())
 
-      val testProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
-      librarian ! Librarian.GetState(testProbe.ref)
-      testProbe.expectMessage(Librarian.Ready)
+      val stateProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Ready)
 
       librarian ! msg
 
-      librarian ! Librarian.GetState(testProbe.ref)
-      testProbe.expectMessage(Librarian.Busy)
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Busy)
 
       librarian ! msg
 
-      librarian ! Librarian.GetState(testProbe.ref)
-      testProbe.expectMessage(Librarian.Busy)
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Busy)
     }
   }
 }
