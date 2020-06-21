@@ -51,21 +51,8 @@ class Librarian(
 
   protected def ready(): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.receiveMessage {
-      case FindBookByTopic(topic, replyTo, _) =>
-        val result = optToEither(topic, Catalog.findBookByTopic)
-        process(result, replyTo)
-        busy()
-      case FindBookByTitle(title, replyTo, _) =>
-        val result = optToEither(title, Catalog.findBookByTitle)
-        process(result, replyTo)
-        busy()
-      case FindBookByAuthor(author, replyTo, _) =>
-        val result = optToEither(author, Catalog.findBookByAuthor)
-        process(result, replyTo)
-        busy()
-      case FindBookByIsbn(isbn, replyTo, _) =>
-        val result = optToEither(isbn, Catalog.findBookByIsbn)
-        process(result, replyTo)
+      case m: Msg =>
+        research(m)
         busy()
       case GetState(replyTo) =>
         replyTo ! Ready
@@ -83,6 +70,21 @@ class Librarian(
       case other =>
         Behaviors.same
     }
+
+  private def research(request: RareBooksProtocol.Msg): Unit = {
+    request match {
+      case FindBookByTopic(topic, replyTo, _) =>
+        process(optToEither(topic, Catalog.findBookByTopic), replyTo)
+      case FindBookByTitle(title, replyTo, _) =>
+        process(optToEither(title, Catalog.findBookByTitle), replyTo)
+      case FindBookByAuthor(author, replyTo, _) =>
+        process(optToEither(author, Catalog.findBookByAuthor), replyTo)
+      case FindBookByIsbn(isbn, replyTo, _) =>
+        process(optToEither(isbn, Catalog.findBookByIsbn), replyTo)
+      case msg =>
+        context.log.info(s"Unknown research request: ${msg}")
+    }
+  }
 
   private def notifyResultLater(msg: Msg, replyTo: ActorRef[Msg]): Unit =
     timers.startSingleTimer(TimerKey, NotifyResearchResult(msg, replyTo), findBookDuration)
