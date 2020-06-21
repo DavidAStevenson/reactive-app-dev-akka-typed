@@ -11,8 +11,8 @@ object Librarian {
   private[library] case class GetState(replyTo: ActorRef[PrivateResponse]) extends PrivateCommand
 
   sealed trait PrivateResponse extends RareBooksProtocol.BaseMsg
-  private[library] case object BusyState extends PrivateResponse
-  private[library] case object ReadyState extends PrivateResponse
+  private[library] case object Busy extends PrivateResponse
+  private[library] case object Ready extends PrivateResponse
 
   def optToEither[T](value: T, func: T => Option[List[BookCard]]):
     Either[BookNotFound, BookFound] =

@@ -118,11 +118,11 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
       val testProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
       librarian ! Librarian.GetState(testProbe.ref)
-      testProbe.expectMessage(Librarian.ReadyState)
+      testProbe.expectMessage(Librarian.Ready)
 
       librarian ! msg
 
-      testProbe.expectMessage(Librarian.BusyState)
+      testProbe.expectMessage(Librarian.Busy)
     }
 
     "remain in busy state after receiving a request, when busy" in {
@@ -133,15 +133,15 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
       val testProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
       librarian ! Librarian.GetState(testProbe.ref)
-      testProbe.expectMessage(Librarian.ReadyState)
+      testProbe.expectMessage(Librarian.Ready)
 
       librarian ! msg
 
-      testProbe.expectMessage(Librarian.BusyState)
+      testProbe.expectMessage(Librarian.Busy)
 
       librarian ! msg
 
-      testProbe.expectMessage(Librarian.BusyState)
+      testProbe.expectMessage(Librarian.Busy)
     }
   }
 }
