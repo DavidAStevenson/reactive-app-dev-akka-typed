@@ -97,6 +97,13 @@ class RareBooksAsyncSpec
       }
 
       "close down when it's time to close and make a report" in {
+        LoggingTestKit.info(closeLog).expect {
+          manualTime.timePasses(residualSecs.seconds)
+        }
+        LoggingTestKit.info(reportLog).expect {
+          manualTime.timePasses(0.seconds)
+        }
+        /*
         LoggingTestKit
           .empty
           .withLogLevel(Level.INFO)
@@ -105,6 +112,7 @@ class RareBooksAsyncSpec
           .expect {
             manualTime.timePasses(residualSecs.seconds)
           }
+          */
       }
 
       s"log '${alreadyClosedLog}' at info, when already closed" in {
