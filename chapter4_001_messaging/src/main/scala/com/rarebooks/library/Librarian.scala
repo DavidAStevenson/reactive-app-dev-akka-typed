@@ -45,18 +45,30 @@ class Librarian(context: ActorContext[RareBooksProtocol.BaseMsg]) {
       case FindBookByTopic(topic, replyTo, _) =>
         val result = optToEither(topic, Catalog.findBookByTopic)
         process(result, replyTo)
-        Behaviors.same
+        busy()
       case FindBookByTitle(title, replyTo, _) =>
         val result = optToEither(title, Catalog.findBookByTitle)
         process(result, replyTo)
-        Behaviors.same
+        busy()
       case FindBookByAuthor(author, replyTo, _) =>
         val result = optToEither(author, Catalog.findBookByAuthor)
         process(result, replyTo)
-        Behaviors.same
+        busy()
       case FindBookByIsbn(isbn, replyTo, _) =>
         val result = optToEither(isbn, Catalog.findBookByIsbn)
         process(result, replyTo)
+        busy()
+      case GetState(replyTo) =>
+        replyTo ! Ready
+        Behaviors.same
+    }
+
+  protected def busy(): Behavior[RareBooksProtocol.BaseMsg] =
+    Behaviors.receiveMessage {
+      case GetState(replyTo) =>
+        replyTo ! Busy
+        ready()
+      case other =>
         Behaviors.same
     }
 

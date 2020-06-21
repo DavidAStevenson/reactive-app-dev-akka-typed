@@ -122,6 +122,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
       librarian ! msg
 
+      librarian ! Librarian.GetState(testProbe.ref)
       testProbe.expectMessage(Librarian.Busy)
     }
 
@@ -137,10 +138,12 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
       librarian ! msg
 
+      librarian ! Librarian.GetState(testProbe.ref)
       testProbe.expectMessage(Librarian.Busy)
 
       librarian ! msg
 
+      librarian ! Librarian.GetState(testProbe.ref)
       testProbe.expectMessage(Librarian.Busy)
     }
   }
