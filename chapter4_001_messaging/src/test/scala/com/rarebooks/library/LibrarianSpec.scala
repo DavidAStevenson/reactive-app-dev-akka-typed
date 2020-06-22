@@ -151,5 +151,35 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       librarian ! Librarian.GetState(stateProbe.ref)
       stateProbe.expectMessage(Librarian.Busy)
     }
+
+    "stash a second request when received while busy" in {
+      val customerProbe1 = testKit.createTestProbe[Msg]()
+      val isbn1 = "0123456789"
+      val msg1 = FindBookByIsbn(isbn1, customerProbe1.ref)
+      val librarian = spawn(librarianTestApply())
+
+      val stateProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Ready)
+
+      librarian ! msg1
+
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Busy)
+
+      val customerProbe2 = testKit.createTestProbe[Msg]()
+      val isbn2 = "0872202208"
+      val msg2 = FindBookByIsbn(isbn2, customerProbe2.ref)
+      librarian ! msg2
+
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Busy)
+
+      val result1 = customerProbe1.expectMessageType[BookNotFound]
+      result1.reason shouldBe s"No book(s) matching ${isbn1}."
+
+      val result2 = customerProbe2.expectMessageType[BookFound]
+      result2.books shouldBe List(phaedrus)
+    }
   }
 }
