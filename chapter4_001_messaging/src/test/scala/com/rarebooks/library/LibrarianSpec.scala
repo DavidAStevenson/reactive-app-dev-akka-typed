@@ -8,14 +8,16 @@ import org.slf4j.event.Level
 import org.scalatest.wordspec.AnyWordSpecLike
 import com.typesafe.config.ConfigFactory
 
-class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
+class LibrarianSpec
+  extends ScalaTestWithActorTestKit(ConfigFactory.load())
+  with AnyWordSpecLike {
 
   import Catalog._
   import RareBooksProtocol._
 
   val conf = ConfigFactory.load()
   val findBookDuration = Duration(conf.getDuration("rare-books.librarian.find-book-duration", Millis), Millis)
-  val stashSize = 1 // want to get it from config...
+  val stashSize = conf.getInt("rare-books.librarian.stash-size")
 
   "Receiving FindBookByTitle" should {
 

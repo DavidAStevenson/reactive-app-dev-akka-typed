@@ -32,9 +32,10 @@ object Librarian {
   }
 
   private[library] def setup(findBookDuration: FiniteDuration): Behavior[RareBooksProtocol.BaseMsg] =
-    Behaviors.withStash(1) { buffer =>
+    Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
       Behaviors.withTimers { timers =>
-        Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
+        val stashSize = context.system.settings.config.getInt("rare-books.librarian.stash-size")
+        Behaviors.withStash(stashSize) { buffer =>
           new Librarian(context, timers, buffer, findBookDuration).ready()
         }
       }
