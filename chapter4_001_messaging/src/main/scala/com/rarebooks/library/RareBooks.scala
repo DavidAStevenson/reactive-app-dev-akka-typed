@@ -19,8 +19,9 @@ object RareBooks {
     .narrow
 
   private[library] def setup(name: String): Behavior[RareBooksProtocol.BaseMsg] =
-    Behaviors.withStash(5) { buffer =>
-      Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
+    Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
+      val stashSize = context.system.settings.config.getInt("rare-books.stash-size")
+      Behaviors.withStash(stashSize) { buffer =>
         Behaviors.withTimers {
           timers => new RareBooks(context, timers, buffer, name).open()
         }
