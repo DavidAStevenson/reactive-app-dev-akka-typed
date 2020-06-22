@@ -3,6 +3,8 @@ package com.rarebooks.library
 import scala.concurrent.duration.{ MILLISECONDS => Millis, Duration, SECONDS }
 import akka.actor.typed.{ Behavior }
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
+import akka.actor.testkit.typed.scaladsl.LoggingTestKit
+import org.slf4j.event.Level
 import org.scalatest.wordspec.AnyWordSpecLike
 import com.typesafe.config.ConfigFactory
 
@@ -13,6 +15,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
   val conf = ConfigFactory.load()
   val findBookDuration = Duration(conf.getDuration("rare-books.librarian.find-book-duration", Millis), Millis)
+  val stashSize = 1 // want to get it from config...
 
   "Receiving FindBookByTitle" should {
 
@@ -149,7 +152,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       librarian ! msg
 
       librarian ! Librarian.GetState(stateProbe.ref)
-      stateProbe.expectMessage(Librarian.Busy)
+      stateProbe.expectMessage(Librarian.Busy(1))
     }
 
     "transition to busy and back to ready state when processing a request" in {
@@ -195,13 +198,41 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       librarian ! msg2
 
       librarian ! Librarian.GetState(stateProbe.ref)
-      stateProbe.expectMessage(Librarian.Busy)
+      stateProbe.expectMessage(Librarian.Busy(1))
 
       val result1 = customerProbe1.expectMessageType[BookNotFound]
       result1.reason shouldBe s"No book(s) matching ${isbn1}."
 
       val result2 = customerProbe2.expectMessageType[BookFound]
       result2.books shouldBe List(phaedrus)
+    }
+
+    "log a warning when the stash is full" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val isbn = "0123456789"
+      val msg = FindBookByIsbn(isbn, customerProbe.ref)
+      val librarian = spawn(librarianTestApply())
+
+      val stateProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
+
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Ready)
+
+      librarian ! msg
+
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Busy)
+
+      for (i <- 1 to stashSize)
+        librarian ! msg
+
+      librarian ! Librarian.GetState(stateProbe.ref)
+      stateProbe.expectMessage(Librarian.Busy(stashSize))
+
+      LoggingTestKit.warn("stash full while busy, dropping new incoming message").expect {
+        librarian ! msg
+      }
+
     }
   }
 }

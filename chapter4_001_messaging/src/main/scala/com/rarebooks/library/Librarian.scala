@@ -15,6 +15,7 @@ object Librarian {
   sealed trait PrivateResponse extends RareBooksProtocol.BaseMsg
   private[library] case object Busy extends PrivateResponse
   private[library] case object Ready extends PrivateResponse
+  private[library] case class Busy(stashSize: Int) extends PrivateResponse
 
   private case object TimerKey
 
@@ -68,10 +69,14 @@ class Librarian(
         replyTo ! result
         buffer.unstashAll(ready())
       case GetState(replyTo) =>
-        replyTo ! Busy
+        if (buffer.isEmpty) replyTo ! Busy
+        else replyTo ! Busy(buffer.size)
         Behaviors.same
       case other =>
-        buffer.stash(other)
+        if (buffer.isFull)
+          context.log.warn("stash full while busy, dropping new incoming message")
+        else
+          buffer.stash(other)
         Behaviors.same
     }
 
