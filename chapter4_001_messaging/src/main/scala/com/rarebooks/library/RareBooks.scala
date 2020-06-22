@@ -101,7 +101,10 @@ class RareBooks(
         changeLibrarian(ref)
         Behaviors.same
       case other =>
-        buffer.stash(other)
+        if (buffer.isFull)
+          context.log.warn("stash full while Closed, dropping new incoming message")
+        else
+          buffer.stash(other)
         Behaviors.same
     }
 
