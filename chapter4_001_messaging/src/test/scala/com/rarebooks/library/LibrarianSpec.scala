@@ -12,7 +12,7 @@ class LibrarianSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   import RareBooksProtocol._
 
   val conf = ConfigFactory.load()
-  val findBookDuration = Duration(conf.getDuration("rare-books.open-duration", SECONDS), Millis)
+  val findBookDuration = Duration(conf.getDuration("rare-books.librarian.find-book-duration", Millis), Millis)
 
   "Receiving FindBookByTitle" should {
 
