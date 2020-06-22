@@ -2,7 +2,7 @@ package com.rarebooks.library
 
 import scala.concurrent.duration.FiniteDuration
 import akka.actor.typed.{ ActorRef, Behavior }
-import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, TimerScheduler }
+import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, StashBuffer, TimerScheduler }
 
 object Librarian {
 
@@ -31,9 +31,11 @@ object Librarian {
   }
 
   private[library] def setup(findBookDuration: FiniteDuration): Behavior[RareBooksProtocol.BaseMsg] =
-    Behaviors.withTimers { timers =>
-      Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
-        new Librarian(context, timers, findBookDuration).ready()
+    Behaviors.withStash(1) { buffer =>
+      Behaviors.withTimers { timers =>
+        Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
+          new Librarian(context, timers, buffer, findBookDuration).ready()
+        }
       }
     }
 
@@ -42,6 +44,7 @@ object Librarian {
 class Librarian(
   context: ActorContext[RareBooksProtocol.BaseMsg],
   timers: TimerScheduler[RareBooksProtocol.BaseMsg],
+  buffer: StashBuffer[RareBooksProtocol.BaseMsg],
   findBookDuration: FiniteDuration) {
 
   context.log.info("Librarian started")
@@ -63,11 +66,12 @@ class Librarian(
     Behaviors.receiveMessage {
       case NotifyResearchResult(result, replyTo) =>
         replyTo ! result
-        ready()
+        buffer.unstashAll(ready())
       case GetState(replyTo) =>
         replyTo ! Busy
         Behaviors.same
       case other =>
+        buffer.stash(other)
         Behaviors.same
     }
 
