@@ -207,6 +207,25 @@ class RareBooksAsyncSpec
         manualTime.timePasses(residualSecs.seconds)
         librarianProbe.expectMessage(msg)
       }
+
+      "log a warning when the stash is full" in {
+        val librarianProbe = testKit.createTestProbe[Msg]()
+        val actorName = "rareBooks-stashFull"
+        val rareBooks = spawn(rareBooksTestApply(actorName))
+        val customerProbe = testKit.createTestProbe[Msg]()
+        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+        val stashSize = conf.getInt("rare-books.stash-size")
+
+        rareBooks ! RareBooks.ChangeLibrarian(librarianProbe.ref)
+        rareBooks ! RareBooks.Close
+
+        for (i <- 1 to stashSize)
+          rareBooks ! msg
+
+        LoggingTestKit.warn("stash full while Closed, dropping new incoming message").expect {
+          rareBooks ! msg
+        }
+      }
     }
 
   }
