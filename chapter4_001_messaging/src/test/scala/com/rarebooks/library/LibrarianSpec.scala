@@ -4,12 +4,13 @@ import scala.concurrent.duration.{ MILLISECONDS => Millis, Duration, SECONDS }
 import akka.actor.typed.{ Behavior }
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.actor.testkit.typed.scaladsl.LoggingTestKit
+import akka.actor.testkit.typed.scaladsl.ManualTime
 import org.slf4j.event.Level
 import org.scalatest.wordspec.AnyWordSpecLike
 import com.typesafe.config.ConfigFactory
 
 class LibrarianSpec
-  extends ScalaTestWithActorTestKit(ConfigFactory.load())
+  extends ScalaTestWithActorTestKit(ManualTime.config.withFallback(ConfigFactory.load()))
   with AnyWordSpecLike {
 
   import Catalog._
@@ -19,6 +20,8 @@ class LibrarianSpec
   val findBookDuration = Duration(conf.getDuration("rare-books.librarian.find-book-duration", Millis), Millis)
   val stashSize = conf.getInt("rare-books.librarian.stash-size")
 
+  val manualTime: ManualTime = ManualTime()
+
   "Receiving FindBookByTitle" should {
 
     "result in BookFound, when the book exists" in {
@@ -27,6 +30,9 @@ class LibrarianSpec
       val msg = FindBookByTitle(title, customerProbe.ref)
       val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
+
+      manualTime.timePasses(findBookDuration)
+
       val result = customerProbe.expectMessageType[BookFound]
       result.books shouldBe List(theEpicOfGilgamesh)
     }
@@ -37,6 +43,9 @@ class LibrarianSpec
       val msg = FindBookByTitle(title, customerProbe.ref)
       val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
+
+      manualTime.timePasses(findBookDuration)
+
       val result = customerProbe.expectMessageType[BookNotFound]
       result.reason shouldBe s"No book(s) matching ${title}."
     }
@@ -51,6 +60,8 @@ class LibrarianSpec
       val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
 
+      manualTime.timePasses(findBookDuration)
+
       val receive = BookFound(List[BookCard](phaedrus, theHistories))
       val result = customerProbe.expectMessageType[BookFound]
       result.books shouldBe receive.books
@@ -62,6 +73,8 @@ class LibrarianSpec
 
       val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
+
+      manualTime.timePasses(findBookDuration)
 
       val receive = BookNotFound(s"No book(s) matching ${msg.topic}.")
       val result = customerProbe.expectMessageType[BookNotFound]
@@ -77,6 +90,9 @@ class LibrarianSpec
       val msg = FindBookByAuthor(author, customerProbe.ref)
       val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
+
+      manualTime.timePasses(findBookDuration)
+
       val result = customerProbe.expectMessageType[BookFound]
       result.books shouldBe List(theHistories)
     }
@@ -87,6 +103,9 @@ class LibrarianSpec
       val msg = FindBookByAuthor(author, customerProbe.ref)
       val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
+
+      manualTime.timePasses(findBookDuration)
+
       val result = customerProbe.expectMessageType[BookNotFound]
       result.reason shouldBe s"No book(s) matching ${author}."
     }
@@ -100,6 +119,9 @@ class LibrarianSpec
       val msg = FindBookByIsbn(isbn, customerProbe.ref)
       val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
+
+      manualTime.timePasses(findBookDuration)
+
       val result = customerProbe.expectMessageType[BookFound]
       result.books shouldBe List(phaedrus)
     }
@@ -110,6 +132,9 @@ class LibrarianSpec
       val msg = FindBookByIsbn(isbn, customerProbe.ref)
       val librarian = spawn(Librarian(findBookDuration))
       librarian ! msg
+
+      manualTime.timePasses(findBookDuration)
+
       val result = customerProbe.expectMessageType[BookNotFound]
       result.reason shouldBe s"No book(s) matching ${isbn}."
     }
@@ -172,6 +197,8 @@ class LibrarianSpec
       librarian ! Librarian.GetState(stateProbe.ref)
       stateProbe.expectMessage(Librarian.Busy)
 
+      manualTime.timePasses(findBookDuration)
+
       val result = customerProbe.expectMessageType[BookNotFound]
       result.reason shouldBe s"No book(s) matching ${isbn}."
 
@@ -202,8 +229,12 @@ class LibrarianSpec
       librarian ! Librarian.GetState(stateProbe.ref)
       stateProbe.expectMessage(Librarian.Busy(1))
 
+      manualTime.timePasses(findBookDuration)
+
       val result1 = customerProbe1.expectMessageType[BookNotFound]
       result1.reason shouldBe s"No book(s) matching ${isbn1}."
+
+      manualTime.timePasses(findBookDuration)
 
       val result2 = customerProbe2.expectMessageType[BookFound]
       result2.books shouldBe List(phaedrus)

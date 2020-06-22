@@ -100,19 +100,7 @@ class RareBooksAsyncSpec
         LoggingTestKit.info(closeLog).expect {
           manualTime.timePasses(residualSecs.seconds)
         }
-        LoggingTestKit.info(reportLog).expect {
-          manualTime.timePasses(0.seconds)
-        }
-        /*
-        LoggingTestKit
-          .empty
-          .withLogLevel(Level.INFO)
-          .withMessageRegex(s"[${closeLog}][${reportLog}]")
-          .withOccurrences(2)
-          .expect {
-            manualTime.timePasses(residualSecs.seconds)
-          }
-          */
+        LoggingTestKit.info(reportLog).expect _
       }
 
       s"log '${alreadyClosedLog}' at info, when already closed" in {
