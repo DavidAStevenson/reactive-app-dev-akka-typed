@@ -2,7 +2,7 @@ package com.rarebooks.library
 
 import scala.concurrent.duration.{ MILLISECONDS => Millis, FiniteDuration, Duration, SECONDS }
 import akka.actor.typed.{ ActorRef, Behavior }
-import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, TimerScheduler, StashBuffer }
+import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, StashBuffer, TimerScheduler }
 
 object RareBooks {
 
@@ -10,30 +10,31 @@ object RareBooks {
   private[library] case object Open extends PrivateCommand
   private[library] case object Close extends PrivateCommand
   private[library] case object Report extends PrivateCommand
-  private[library] case class ChangeLibrarian(librarian: ActorRef[RareBooksProtocol.Msg]) extends PrivateCommand
+  private[library] case class ChangeLibrarian(librarian: ActorRef[RareBooksProtocol.Msg])
+      extends PrivateCommand
 
   private case object TimerKey
 
   def apply(name: String): Behavior[RareBooksProtocol.Msg] =
-    setup(name)
-    .narrow
+    setup(name).narrow
 
   private[library] def setup(name: String): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
       val stashSize = context.system.settings.config.getInt("rare-books.stash-size")
       Behaviors.withStash(stashSize) { buffer =>
-        Behaviors.withTimers {
-          timers => new RareBooks(context, timers, buffer, name).open()
+        Behaviors.withTimers { timers =>
+          new RareBooks(context, timers, buffer, name).open()
         }
       }
     }
 
 }
 class RareBooks(
-  context: ActorContext[RareBooksProtocol.BaseMsg],
-  timers: TimerScheduler[RareBooksProtocol.BaseMsg],
-  buffer: StashBuffer[RareBooksProtocol.BaseMsg],
-  bookStoreName: String) {
+    context: ActorContext[RareBooksProtocol.BaseMsg],
+    timers: TimerScheduler[RareBooksProtocol.BaseMsg],
+    buffer: StashBuffer[RareBooksProtocol.BaseMsg],
+    bookStoreName: String
+) {
   import RareBooks._
   import RareBooksProtocol._
 
@@ -41,10 +42,16 @@ class RareBooks(
     Duration(context.system.settings.config.getDuration("rare-books.open-duration", Millis), Millis)
 
   private val closeDuration: FiniteDuration =
-    Duration(context.system.settings.config.getDuration("rare-books.close-duration", Millis), Millis)
+    Duration(
+      context.system.settings.config.getDuration("rare-books.close-duration", Millis),
+      Millis
+    )
 
   private val findBookDuration: FiniteDuration =
-    Duration(context.system.settings.config.getDuration("rare-books.librarian.find-book-duration", Millis), Millis)
+    Duration(
+      context.system.settings.config.getDuration("rare-books.librarian.find-book-duration", Millis),
+      Millis
+    )
 
   private var librarian = createLibrarian(findBookDuration)
   private var requestsToday: Int = 0
@@ -94,7 +101,9 @@ class RareBooks(
         Behaviors.same
       case Report =>
         totalRequests += requestsToday
-        logInfo(s"${requestsToday} requests processed today. Total requests processed = ${totalRequests}")
+        logInfo(
+          s"${requestsToday} requests processed today. Total requests processed = ${totalRequests}"
+        )
         requestsToday = 0
         Behaviors.same
       case ChangeLibrarian(ref) =>

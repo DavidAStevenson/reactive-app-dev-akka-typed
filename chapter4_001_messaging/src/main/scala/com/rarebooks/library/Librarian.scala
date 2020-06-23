@@ -10,7 +10,10 @@ object Librarian {
 
   sealed trait PrivateCommand extends RareBooksProtocol.BaseMsg
   private[library] case class GetState(replyTo: ActorRef[PrivateResponse]) extends PrivateCommand
-  case class NotifyResearchResult(result: RareBooksProtocol.Msg, replyTo: ActorRef[RareBooksProtocol.Msg]) extends PrivateCommand
+  case class NotifyResearchResult(
+      result: RareBooksProtocol.Msg,
+      replyTo: ActorRef[RareBooksProtocol.Msg]
+  ) extends PrivateCommand
 
   sealed trait PrivateResponse extends RareBooksProtocol.BaseMsg
   private[library] case object Busy extends PrivateResponse
@@ -19,19 +22,20 @@ object Librarian {
 
   private case object TimerKey
 
-  def optToEither[T](value: T, func: T => Option[List[BookCard]]):
-    Either[BookNotFound, BookFound] =
-      func(value) match {
-        case Some(b) => Right(BookFound(b))
-        case None    => Left(BookNotFound(s"No book(s) matching ${value}."))
-      }
+  def optToEither[T](value: T, func: T => Option[List[BookCard]]): Either[BookNotFound, BookFound] =
+    func(value) match {
+      case Some(b) => Right(BookFound(b))
+      case None    => Left(BookNotFound(s"No book(s) matching ${value}."))
+    }
 
-  def apply(findBookDuration: FiniteDuration): Behavior[RareBooksProtocol.Msg] = Behaviors.setup { context =>
-    setup(findBookDuration).
-    narrow
-  }
+  def apply(findBookDuration: FiniteDuration): Behavior[RareBooksProtocol.Msg] =
+    Behaviors.setup { context =>
+      setup(findBookDuration).narrow
+    }
 
-  private[library] def setup(findBookDuration: FiniteDuration): Behavior[RareBooksProtocol.BaseMsg] =
+  private[library] def setup(
+      findBookDuration: FiniteDuration
+  ): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
       Behaviors.withTimers { timers =>
         val stashSize = context.system.settings.config.getInt("rare-books.librarian.stash-size")
@@ -41,13 +45,14 @@ object Librarian {
       }
     }
 
-} 
+}
 
 class Librarian(
-  context: ActorContext[RareBooksProtocol.BaseMsg],
-  timers: TimerScheduler[RareBooksProtocol.BaseMsg],
-  buffer: StashBuffer[RareBooksProtocol.BaseMsg],
-  findBookDuration: FiniteDuration) {
+    context: ActorContext[RareBooksProtocol.BaseMsg],
+    timers: TimerScheduler[RareBooksProtocol.BaseMsg],
+    buffer: StashBuffer[RareBooksProtocol.BaseMsg],
+    findBookDuration: FiniteDuration
+) {
 
   context.log.info("Librarian started")
 
@@ -100,9 +105,9 @@ class Librarian(
     timers.startSingleTimer(TimerKey, NotifyResearchResult(msg, replyTo), findBookDuration)
 
   private def process(result: Either[BookNotFound, BookFound], replyTo: ActorRef[Msg]): Unit = {
-    result.fold (
+    result.fold(
       bookNotFound => notifyResultLater(bookNotFound, replyTo),
-      bookFound    => notifyResultLater(bookFound, replyTo)
+      bookFound => notifyResultLater(bookFound, replyTo)
     )
   }
 

@@ -22,7 +22,7 @@ class RareBooksSynchronousSpec extends BaseSpec {
 
     s"spawn child actor named ${childActorName}" in {
       val testKit = BehaviorTestKit(RareBooks("rareBooks-synchronous"))
-      testKit.expectEffectType[Spawned[Librarian]].childName should === (childActorName)
+      testKit.expectEffectType[Spawned[Librarian]].childName should ===(childActorName)
     }
 
     "forward to librarian" in {
@@ -39,8 +39,8 @@ class RareBooksSynchronousSpec extends BaseSpec {
 }
 
 class RareBooksAsyncSpec
-  extends ScalaTestWithActorTestKit(ManualTime.config.withFallback(ConfigFactory.load()))
-  with AnyWordSpecLike {
+    extends ScalaTestWithActorTestKit(ManualTime.config.withFallback(ConfigFactory.load()))
+    with AnyWordSpecLike {
 
   val initLog = "RareBooks started"
   val openLog = "Time to open up!"
@@ -54,7 +54,6 @@ class RareBooksAsyncSpec
   // special version of apply() to enable testing of internals
   def rareBooksTestApply(name: String): Behavior[RareBooksProtocol.BaseMsg] =
     RareBooks.setup(name)
-
 
   "RareBooks" can {
 
@@ -91,7 +90,8 @@ class RareBooksAsyncSpec
       s"stay open for at least ${checkOpenDuration} seconds" in {
         LoggingTestKit
           .info(closeLog)
-          .withOccurrences(0).expect {
+          .withOccurrences(0)
+          .expect {
             manualTime.timePasses(checkOpenDuration.seconds)
           }
       }
@@ -118,7 +118,8 @@ class RareBooksAsyncSpec
       s"stay closed for at least ${checkClosedDuration} seconds" in {
         LoggingTestKit
           .info(openLog)
-          .withOccurrences(0).expect {
+          .withOccurrences(0)
+          .expect {
             manualTime.timePasses(checkClosedDuration.seconds)
           }
       }

@@ -10,14 +10,15 @@ import org.scalatest.wordspec.AnyWordSpecLike
 import com.typesafe.config.ConfigFactory
 
 class LibrarianSpec
-  extends ScalaTestWithActorTestKit(ManualTime.config.withFallback(ConfigFactory.load()))
-  with AnyWordSpecLike {
+    extends ScalaTestWithActorTestKit(ManualTime.config.withFallback(ConfigFactory.load()))
+    with AnyWordSpecLike {
 
   import Catalog._
   import RareBooksProtocol._
 
   val conf = ConfigFactory.load()
-  val findBookDuration = Duration(conf.getDuration("rare-books.librarian.find-book-duration", Millis), Millis)
+  val findBookDuration =
+    Duration(conf.getDuration("rare-books.librarian.find-book-duration", Millis), Millis)
   val stashSize = conf.getInt("rare-books.librarian.stash-size")
 
   val manualTime: ManualTime = ManualTime()

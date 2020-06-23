@@ -13,8 +13,9 @@ object Catalog {
     Set(Greece, Philosophy),
     "Hackett Publishing Company, Inc.",
     "English",
-    144)
-                                                                                                  
+    144
+  )
+
   val theEpicOfGilgamesh = BookCard(
     "0141026286",
     "unknown",
@@ -24,7 +25,8 @@ object Catalog {
     Set(Gilgamesh, Persia, Royalty),
     "Penguin Classics",
     "English",
-    80)
+    80
+  )
 
   val theHistories = BookCard(
     "0140449086",
@@ -35,7 +37,8 @@ object Catalog {
     Set(Africa, Asia, Greece, Tradition),
     "Penguin Classics",
     "English",
-    771)
+    771
+  )
 
   /*
    * Map containing book cards.
