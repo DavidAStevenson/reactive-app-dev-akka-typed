@@ -8,6 +8,8 @@ object Customer {
     Behaviors.setup { context =>
       new Customer(context).receive
     }
+
+  case class CustomerModel(found: Int)
 }
 
 class Customer(context: ActorContext[RareBooksProtocol.Msg]) {
