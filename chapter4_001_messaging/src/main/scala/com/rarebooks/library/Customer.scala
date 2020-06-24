@@ -16,6 +16,9 @@ class Customer(context: ActorContext[RareBooksProtocol.Msg]) {
 
   protected def receive(): Behavior[RareBooksProtocol.Msg] =
     Behaviors.receiveMessage {
+      case b: RareBooksProtocol.BookFound =>
+        context.log.info(f"${b.books.size}%d Book(s) found!")
+        Behaviors.same
       case m: RareBooksProtocol.Msg =>
         context.log.info(s"Received a message: ${m}")
         Behaviors.same
