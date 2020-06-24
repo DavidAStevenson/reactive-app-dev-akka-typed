@@ -153,11 +153,4 @@ object RareBooksProtocol {
     require(title.nonEmpty, "Title required.")
   }
 
-  /**
-    * Get customer message.
-    *
-    * @param dateInMillis date message was created
-    */
-  final case class GetCustomer(dateInMillis: Long = currentTimeMillis) extends Msg
-
 }
