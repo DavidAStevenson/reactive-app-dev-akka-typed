@@ -9,13 +9,15 @@ object Customer {
 
   case class CustomerModel(found: Int)
   private case class State(model: CustomerModel) {
-    def update(m: Msg): State = m match {
-      case BookFound(b, d) => copy(model.copy(found = model.found + b.size))
-    }
+    def update(m: Msg): State =
+      m match {
+        case BookFound(b, d) => copy(model.copy(found = model.found + b.size))
+      }
   }
 
   sealed trait PrivateCommand extends BaseMsg
-  private[library] final case class GetCustomer(replyTo: ActorRef[CustomerModel]) extends PrivateCommand
+  private[library] final case class GetCustomer(replyTo: ActorRef[CustomerModel])
+      extends PrivateCommand
 
   def apply(): Behavior[Msg] =
     setup().narrow
