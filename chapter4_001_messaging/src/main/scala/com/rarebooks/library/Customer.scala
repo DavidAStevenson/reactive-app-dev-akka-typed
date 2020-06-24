@@ -5,19 +5,26 @@ import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
 
 object Customer {
 
-  case class CustomerModel(found: Int)
+  import RareBooksProtocol._
 
-  sealed trait PrivateCommand extends RareBooksProtocol.BaseMsg
+  case class CustomerModel(found: Int)
+  private case class State(model: CustomerModel) {
+    def update(m: Msg): State = m match {
+      case BookFound(b, d) => copy(model.copy(found = model.found + b.size))
+    }
+  }
+
+  sealed trait PrivateCommand extends BaseMsg
   private[library] final case class GetCustomer(replyTo: ActorRef[CustomerModel]) extends PrivateCommand
 
-  def apply(): Behavior[RareBooksProtocol.Msg] =
+  def apply(): Behavior[Msg] =
     setup().narrow
 
-  private[library] def testApply(): Behavior[RareBooksProtocol.BaseMsg] =
+  private[library] def testApply(): Behavior[BaseMsg] =
     setup()
 
-  private[library] def setup(): Behavior[RareBooksProtocol.BaseMsg] =
-    Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
+  private[library] def setup(): Behavior[BaseMsg] =
+    Behaviors.setup[BaseMsg] { context =>
       new Customer(context).receive()
     }
 
@@ -29,13 +36,16 @@ class Customer(context: ActorContext[RareBooksProtocol.BaseMsg]) {
 
   import Customer._
 
+  private var state = State(CustomerModel(0))
+
   protected def receive(): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.receiveMessage {
       case b: RareBooksProtocol.BookFound =>
         context.log.info(f"${b.books.size}%d Book(s) found!")
+        state = state.update(b)
         Behaviors.same
       case GetCustomer(replyTo) =>
-        replyTo ! CustomerModel(1)
+        replyTo ! state.model
         Behaviors.same
       case m: RareBooksProtocol.Msg =>
         context.log.info(s"Received a message: ${m}")
