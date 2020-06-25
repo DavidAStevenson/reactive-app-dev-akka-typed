@@ -67,6 +67,7 @@ class Customer(
         context.log.info(
           f"${state.model.notFound}%d not found so far, shocker! My tolerance is ${tolerance}%d"
         )
+        requestBookInfo()
         Behaviors.same
       case GetCustomer(replyTo) =>
         replyTo ! state.model
