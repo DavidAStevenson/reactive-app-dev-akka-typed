@@ -37,5 +37,16 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       testProbe.expectMessage(Customer.CustomerModel(2))
     }
 
+    "increase Customer.model.bookFound for 2 BookFound messages (1+2 books)" in {
+      val customer = spawn(Customer.testApply())
+      val bookFound1 = BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
+      customer ! bookFound1
+      val bookFound2 = BookFound(findBookByTopic(Set(Greece)).get)
+      customer ! bookFound2
+      val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
+      customer ! Customer.GetCustomer(testProbe.ref)
+      testProbe.expectMessage(Customer.CustomerModel(3))
+    }
+
   }
 }
