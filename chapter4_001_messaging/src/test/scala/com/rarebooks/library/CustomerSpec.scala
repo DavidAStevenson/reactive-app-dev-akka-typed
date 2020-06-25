@@ -14,7 +14,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   "Receiving BookFound" should {
 
     "log BookFound at info" in {
-      val customer = spawn(Customer(ToleranceNonZero))
+      val customer = spawn(Customer(system.deadLetters, ToleranceNonZero))
       val bookFound = BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
       LoggingTestKit.info("1 Book(s) found!").expect {
         customer ! bookFound
@@ -22,7 +22,9 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "increase Customer.model.bookFound by 1 for 1 book found" in {
-      val customer = spawn(Customer.testApply())
+      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
+      val customer = spawn(Customer.testApply(rarebooks.ref))
+      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       val bookFound = BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
       customer ! bookFound
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
@@ -31,7 +33,9 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "increase Customer.model.bookFound by 2 for 2 books found" in {
-      val customer = spawn(Customer.testApply())
+      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
+      val customer = spawn(Customer.testApply(rarebooks.ref))
+      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       val bookFound = BookFound(findBookByTopic(Set(Greece)).get)
       customer ! bookFound
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
@@ -40,7 +44,9 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "increase Customer.model.bookFound for 2 BookFound messages (1+2 books)" in {
-      val customer = spawn(Customer.testApply())
+      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
+      val customer = spawn(Customer.testApply(rarebooks.ref))
+      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       val bookFound1 = BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
       customer ! bookFound1
       val bookFound2 = BookFound(findBookByTopic(Set(Greece)).get)
@@ -55,7 +61,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   "Receiving BookNotFound with not found count less than tolerance" should {
 
     "log BookNotFound at info" in {
-      val customer = spawn(Customer(ToleranceNonZero))
+      val customer = spawn(Customer(system.deadLetters, ToleranceNonZero))
       LoggingTestKit
         .info(f"1 not found so far, shocker! My tolerance is ${ToleranceNonZero}%d")
         .expect {

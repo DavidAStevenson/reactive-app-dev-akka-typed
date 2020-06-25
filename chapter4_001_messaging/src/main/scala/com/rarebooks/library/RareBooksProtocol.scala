@@ -20,6 +20,12 @@ object RareBooksProtocol {
   case object Unknown extends Topic
 
   /**
+    * Viable topics for book requests
+    */
+  val viableTopics: List[Topic] =
+    List(Africa, Asia, Gilgamesh, Greece, Persia, Philosophy, Royalty, Tradition)
+
+  /**
     * Card trait for book cards.
     */
   sealed trait Card {

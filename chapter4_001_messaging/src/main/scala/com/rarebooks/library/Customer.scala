@@ -2,6 +2,7 @@ package com.rarebooks.library
 
 import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
+import scala.util.Random
 
 object Customer {
 
@@ -24,26 +25,36 @@ object Customer {
   private[library] final case class GetCustomer(replyTo: ActorRef[CustomerModel])
       extends PrivateCommand
 
-  def apply(tolerance: Int): Behavior[Msg] =
-    setup(tolerance).narrow
+  def apply(rareBooks: ActorRef[RareBooksProtocol.Msg], tolerance: Int): Behavior[Msg] =
+    setup(rareBooks, tolerance).narrow
 
-  private[library] def testApply(): Behavior[BaseMsg] =
-    setup()
+  private[library] def testApply(rareBooks: ActorRef[RareBooksProtocol.Msg]): Behavior[BaseMsg] =
+    setup(rareBooks)
 
-  private[library] def setup(tolerance: Int = 5): Behavior[BaseMsg] =
+  private[library] def setup(
+      rareBooks: ActorRef[RareBooksProtocol.Msg],
+      tolerance: Int = 5
+  ): Behavior[BaseMsg] =
     Behaviors.setup[BaseMsg] { context =>
-      new Customer(context, tolerance).receive()
+      new Customer(context, rareBooks, tolerance).receive()
     }
 
 }
 
-class Customer(context: ActorContext[RareBooksProtocol.BaseMsg], tolerance: Int) {
-
-  context.log.info("Customer started")
+class Customer(
+    context: ActorContext[RareBooksProtocol.BaseMsg],
+    rareBooks: ActorRef[RareBooksProtocol.Msg],
+    tolerance: Int
+) {
 
   import Customer._
+  import RareBooksProtocol._
 
   private var state = State(CustomerModel(tolerance, 0, 0), -1L)
+
+  // kick off
+  context.log.info("Customer started")
+  requestBookInfo()
 
   protected def receive(): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.receiveMessage {
@@ -64,4 +75,10 @@ class Customer(context: ActorContext[RareBooksProtocol.BaseMsg], tolerance: Int)
         context.log.info(s"Received a message: ${m}")
         Behaviors.same
     }
+
+  private def requestBookInfo(): Unit =
+    rareBooks ! FindBookByTopic(Set(pickTopic), context.self)
+
+  private def pickTopic: Topic =
+    if (Random.nextInt(100) < 50) viableTopics(Random.nextInt(viableTopics.size)) else Unknown
 }
