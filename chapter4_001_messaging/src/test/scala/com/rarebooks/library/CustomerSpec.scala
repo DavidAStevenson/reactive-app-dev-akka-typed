@@ -9,10 +9,12 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   import Catalog._
   import RareBooksProtocol._
 
+  private val ToleranceNonZero: Int = 5
+
   "Receiving BookFound" should {
 
     "log BookFound at info" in {
-      val customer = spawn(Customer())
+      val customer = spawn(Customer(ToleranceNonZero))
       val bookFound = BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
       LoggingTestKit.info("1 Book(s) found!").expect {
         customer ! bookFound
@@ -25,7 +27,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       customer ! bookFound
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
       customer ! Customer.GetCustomer(testProbe.ref)
-      testProbe.expectMessage(Customer.CustomerModel(1))
+      testProbe.expectMessage(Customer.CustomerModel(ToleranceNonZero, 1, 0))
     }
 
     "increase Customer.model.bookFound by 2 for 2 books found" in {
@@ -34,7 +36,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       customer ! bookFound
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
       customer ! Customer.GetCustomer(testProbe.ref)
-      testProbe.expectMessage(Customer.CustomerModel(2))
+      testProbe.expectMessage(Customer.CustomerModel(ToleranceNonZero, 2, 0))
     }
 
     "increase Customer.model.bookFound for 2 BookFound messages (1+2 books)" in {
@@ -45,7 +47,20 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       customer ! bookFound2
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
       customer ! Customer.GetCustomer(testProbe.ref)
-      testProbe.expectMessage(Customer.CustomerModel(3))
+      testProbe.expectMessage(Customer.CustomerModel(ToleranceNonZero, 3, 0))
+    }
+
+  }
+
+  "Receiving BookNotFound with not found count less than tolerance" should {
+
+    "log BookNotFound at info" in {
+      val customer = spawn(Customer(ToleranceNonZero))
+      LoggingTestKit
+        .info(f"1 not found so far, shocker! My tolerance is ${ToleranceNonZero}%d")
+        .expect {
+          customer ! BookNotFound("We don't have such type of books!")
+        }
     }
 
   }
