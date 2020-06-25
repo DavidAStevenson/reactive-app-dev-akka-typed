@@ -8,10 +8,13 @@ object Customer {
   import RareBooksProtocol._
 
   case class CustomerModel(found: Int)
-  private case class State(model: CustomerModel) {
+  private case class State(model: CustomerModel, timeInMillis: Long) {
     def update(m: Msg): State =
       m match {
-        case BookFound(b, d) => copy(model.copy(found = model.found + b.size))
+        case BookFound(b, d) =>
+          //import java.lang.System.currentTimeMillis
+          //copy(model.copy(found = model.found + b.size), timeInMillis = currentTimeMillis)
+          copy(model.copy(found = model.found + b.size), d)
       }
   }
 
@@ -38,7 +41,7 @@ class Customer(context: ActorContext[RareBooksProtocol.BaseMsg]) {
 
   import Customer._
 
-  private var state = State(CustomerModel(0))
+  private var state = State(CustomerModel(0), -1L)
 
   protected def receive(): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.receiveMessage {
