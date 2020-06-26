@@ -23,6 +23,9 @@ class LibrarianSpec
 
   val manualTime: ManualTime = ManualTime()
 
+  def librarianTestApply(): Behavior[RareBooksProtocol.BaseMsg] =
+    Librarian.setup(findBookDuration)
+
   "Receiving FindBookByTitle" should {
 
     "result in BookFound, when the book exists" in {
@@ -143,9 +146,6 @@ class LibrarianSpec
   }
 
   "Receiving a FindBook request" should {
-
-    def librarianTestApply(): Behavior[RareBooksProtocol.BaseMsg] =
-      Librarian.setup(findBookDuration)
 
     "transition to busy state after receiving a request, when ready" in {
       val customerProbe = testKit.createTestProbe[Msg]()
@@ -270,4 +270,16 @@ class LibrarianSpec
 
     }
   }
+
+  "Receiving a Complain" should {
+    "log Credit issued to customer" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val librarian = spawn(librarianTestApply())
+      LoggingTestKit.info(s"Credit issued to customer ${librarian.ref}").expect {
+        librarian ! Complain(customerProbe.ref)
+      }
+    }
+
+  }
+
 }
