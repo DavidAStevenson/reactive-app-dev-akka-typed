@@ -131,7 +131,6 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "stop sending FindBook requests" in {
-
       val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
       val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceZero))
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
