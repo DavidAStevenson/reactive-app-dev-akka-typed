@@ -275,7 +275,7 @@ class LibrarianSpec
     "log Credit issued to customer" in {
       val customerProbe = testKit.createTestProbe[Msg]()
       val librarian = spawn(librarianTestApply())
-      LoggingTestKit.info(s"Credit issued to customer ${librarian.ref}").expect {
+      LoggingTestKit.info(s"Credit issued to customer ${customerProbe.ref}").expect {
         librarian ! Complain(customerProbe.ref)
       }
     }
