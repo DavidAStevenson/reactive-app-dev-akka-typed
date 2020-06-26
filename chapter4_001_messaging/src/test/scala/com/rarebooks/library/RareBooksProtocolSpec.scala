@@ -16,7 +16,7 @@ class RareBooksProtocolSpec extends BaseSpec {
       intercept[IllegalArgumentException] { BookFound(List()) }
     }
     "throw an IllegalArgumentException when 'BookNotFound.reason' is empty" in {
-      intercept[IllegalArgumentException] { BookNotFound("") }
+      intercept[IllegalArgumentException] { BookNotFound("", dummyRef) }
     }
     "have a dateInMillis no later than it is checked" in {
       assert(Complain(dummyRef).dateInMillis <= currentTimeMillis)

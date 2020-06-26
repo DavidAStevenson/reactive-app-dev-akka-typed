@@ -16,7 +16,7 @@ object Customer {
           //import java.lang.System.currentTimeMillis
           //copy(model.copy(found = model.found + b.size), timeInMillis = currentTimeMillis)
           copy(model.copy(found = model.found + b.size), timeInMillis = d)
-        case BookNotFound(_, d) =>
+        case BookNotFound(_, _, d) =>
           copy(model.copy(notFound = model.notFound + 1), timeInMillis = d)
       }
   }

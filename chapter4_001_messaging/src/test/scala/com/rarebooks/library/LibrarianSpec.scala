@@ -77,9 +77,10 @@ class LibrarianSpec
 
       manualTime.timePasses(findBookDuration)
 
-      val receive = BookNotFound(s"No book(s) matching ${msg.topic}.")
+      val receive = BookNotFound(s"No book(s) matching ${msg.topic}.", librarian.ref)
       val result = customerProbe.expectMessageType[BookNotFound]
       result.reason shouldBe receive.reason
+      result.replyTo shouldBe librarian.ref
     }
   }
 

@@ -83,8 +83,11 @@ object RareBooksProtocol {
     * @param reason reason book was not found
     * @param dateInMillis date message was created
     */
-  final case class BookNotFound(reason: String, dateInMillis: Long = currentTimeMillis)
-      extends Msg {
+  final case class BookNotFound(
+      reason: String,
+      replyTo: ActorRef[Msg],
+      dateInMillis: Long = currentTimeMillis
+  ) extends Msg {
     require(reason.nonEmpty, "Reason is required.")
   }
 

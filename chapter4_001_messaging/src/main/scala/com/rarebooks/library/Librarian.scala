@@ -22,12 +22,6 @@ object Librarian {
 
   private case object TimerKey
 
-  def optToEither[T](value: T, func: T => Option[List[BookCard]]): Either[BookNotFound, BookFound] =
-    func(value) match {
-      case Some(b) => Right(BookFound(b))
-      case None    => Left(BookNotFound(s"No book(s) matching ${value}."))
-    }
-
   def apply(findBookDuration: FiniteDuration): Behavior[RareBooksProtocol.Msg] =
     Behaviors.setup { context =>
       setup(findBookDuration).narrow
@@ -84,6 +78,15 @@ class Librarian(
         else
           buffer.stash(other)
         Behaviors.same
+    }
+
+  private def optToEither[T](
+      value: T,
+      func: T => Option[List[BookCard]]
+  ): Either[BookNotFound, BookFound] =
+    func(value) match {
+      case Some(b) => Right(BookFound(b))
+      case None    => Left(BookNotFound(s"No book(s) matching ${value}.", context.self))
     }
 
   private def research(request: RareBooksProtocol.Msg): Unit = {

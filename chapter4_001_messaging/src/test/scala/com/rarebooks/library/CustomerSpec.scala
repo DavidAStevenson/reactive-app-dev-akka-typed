@@ -74,7 +74,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       LoggingTestKit
         .info(f"1 not found so far, shocker! My tolerance is ${ToleranceNonZero}%d")
         .expect {
-          customer ! BookNotFound("We don't have such type of books!")
+          customer ! BookNotFound("We don't have such type of books!", system.ignoreRef)
         }
     }
 
@@ -82,7 +82,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
       val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceNonZero))
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
-      val bookNotFound = BookNotFound("We don't have such type of books!")
+      val bookNotFound = BookNotFound("We don't have such type of books!", system.ignoreRef)
       customer ! bookNotFound
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
       customer ! Customer.GetCustomer(testProbe.ref)
@@ -93,7 +93,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
       val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceNonZero))
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
-      customer ! BookNotFound("No books like that.")
+      customer ! BookNotFound("No books like that.", system.ignoreRef)
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
     }
 
@@ -106,7 +106,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       LoggingTestKit
         .info(f"1 not found so far, shocker! My tolerance is ${ToleranceZero}%d. Time to complain!")
         .expect {
-          customer ! BookNotFound("We don't have such type of books!")
+          customer ! BookNotFound("We don't have such type of books!", system.ignoreRef)
         }
     }
 
@@ -114,11 +114,20 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
       val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceZero))
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
-      val bookNotFound = BookNotFound("We don't have such type of books!")
+      val bookNotFound = BookNotFound("We don't have such type of books!", system.ignoreRef)
       customer ! bookNotFound
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
       customer ! Customer.GetCustomer(testProbe.ref)
       testProbe.expectMessage(Customer.CustomerModel(ToleranceZero, 0, 1))
+    }
+
+    "send a Complaint to the Librarian" in {
+      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
+      val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceZero))
+      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      val librarian = testKit.createTestProbe[RareBooksProtocol.Msg]
+      customer ! BookNotFound("We don't have such type of books!", librarian.ref)
+      librarian.expectMessageType[RareBooksProtocol.Complain]
     }
 
   }
