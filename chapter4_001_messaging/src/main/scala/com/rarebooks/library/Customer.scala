@@ -70,6 +70,12 @@ class Customer(
         )
         requestBookInfo()
         Behaviors.same
+      case b: RareBooksProtocol.BookNotFound =>
+        state = state.update(b)
+        context.log.info(
+          f"${state.model.notFound}%d not found so far, shocker! My tolerance is ${tolerance}%d. Time to complain!"
+        )
+        Behaviors.same
       case GetCustomer(replyTo) =>
         replyTo ! state.model
         Behaviors.same
