@@ -10,6 +10,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   import RareBooksProtocol._
 
   private val ToleranceNonZero: Int = 5
+  private val ToleranceZero: Int = 0
 
   "Receiving BookFound" should {
 
@@ -94,6 +95,19 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       customer ! BookNotFound("No books like that.")
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+    }
+
+  }
+
+  "Receiving BookNotFound with not found count at tolerance level or more" should {
+
+    "log BookNotFound at info, with tolerance reached" in {
+      val customer = spawn(Customer(system.deadLetters, ToleranceZero))
+      LoggingTestKit
+        .info(f"1 not found so far, shocker! My tolerance is ${ToleranceZero}%d. Time to complain!")
+        .expect {
+          customer ! BookNotFound("We don't have such type of books!")
+        }
     }
 
   }
