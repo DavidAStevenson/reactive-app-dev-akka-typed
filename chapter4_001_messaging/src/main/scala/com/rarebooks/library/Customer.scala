@@ -28,12 +28,15 @@ object Customer {
   def apply(rareBooks: ActorRef[RareBooksProtocol.Msg], tolerance: Int): Behavior[Msg] =
     setup(rareBooks, tolerance).narrow
 
-  private[library] def testApply(rareBooks: ActorRef[RareBooksProtocol.Msg]): Behavior[BaseMsg] =
-    setup(rareBooks)
+  private[library] def testApply(
+      rareBooks: ActorRef[RareBooksProtocol.Msg],
+      tolerance: Int
+  ): Behavior[BaseMsg] =
+    setup(rareBooks, tolerance)
 
   private[library] def setup(
       rareBooks: ActorRef[RareBooksProtocol.Msg],
-      tolerance: Int = 5
+      tolerance: Int
   ): Behavior[BaseMsg] =
     Behaviors.setup[BaseMsg] { context =>
       new Customer(context, rareBooks, tolerance).receive()

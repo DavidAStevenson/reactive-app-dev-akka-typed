@@ -24,7 +24,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
     "send another FindBookByTopic message" in {
       val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
-      val customer = spawn(Customer.testApply(rarebooks.ref))
+      val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceNonZero))
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       customer ! BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
@@ -32,7 +32,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
     "increase Customer.model.bookFound by 1 for 1 book found" in {
       val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
-      val customer = spawn(Customer.testApply(rarebooks.ref))
+      val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceNonZero))
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       val bookFound = BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
       customer ! bookFound
@@ -43,7 +43,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
     "increase Customer.model.bookFound by 2 for 2 books found" in {
       val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
-      val customer = spawn(Customer.testApply(rarebooks.ref))
+      val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceNonZero))
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       val bookFound = BookFound(findBookByTopic(Set(Greece)).get)
       customer ! bookFound
@@ -54,7 +54,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
     "increase Customer.model.bookFound for 2 BookFound messages (1+2 books)" in {
       val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
-      val customer = spawn(Customer.testApply(rarebooks.ref))
+      val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceNonZero))
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       val bookFound1 = BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
       customer ! bookFound1
@@ -80,7 +80,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
     "increase Customer.model.bookNotFound by 1 for 1 book not found" in {
       val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
-      val customer = spawn(Customer.testApply(rarebooks.ref))
+      val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceNonZero))
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       val bookNotFound = BookNotFound("We don't have such type of books!")
       customer ! bookNotFound
@@ -91,7 +91,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
     "send another FindBookByTopic message" in {
       val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
-      val customer = spawn(Customer.testApply(rarebooks.ref))
+      val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceNonZero))
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       customer ! BookNotFound("No books like that.")
       rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
@@ -108,6 +108,17 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
         .expect {
           customer ! BookNotFound("We don't have such type of books!")
         }
+    }
+
+    "increase Customer.model.bookNotFound by 1 for 1 book not found" in {
+      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]
+      val customer = spawn(Customer.testApply(rarebooks.ref, ToleranceZero))
+      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      val bookNotFound = BookNotFound("We don't have such type of books!")
+      customer ! bookNotFound
+      val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
+      customer ! Customer.GetCustomer(testProbe.ref)
+      testProbe.expectMessage(Customer.CustomerModel(ToleranceZero, 0, 1))
     }
 
   }
