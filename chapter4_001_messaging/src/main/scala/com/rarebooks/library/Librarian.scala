@@ -55,6 +55,9 @@ class Librarian(
 
   protected def ready(): Behavior[RareBooksProtocol.BaseMsg] =
     Behaviors.receiveMessage {
+      case c: Complain =>
+        context.log.info(s"Credit issued to customer ${c.replyTo}")
+        Behaviors.same
       case m: Msg =>
         research(m)
         busy()
