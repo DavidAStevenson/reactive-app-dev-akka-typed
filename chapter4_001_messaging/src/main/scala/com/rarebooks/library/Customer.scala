@@ -61,6 +61,7 @@ class Customer(
       case b: RareBooksProtocol.BookFound =>
         context.log.info(f"${b.books.size}%d Book(s) found!")
         state = state.update(b)
+        requestBookInfo()
         Behaviors.same
       case b: RareBooksProtocol.BookNotFound if state.model.notFound < state.model.tolerance =>
         state = state.update(b)
