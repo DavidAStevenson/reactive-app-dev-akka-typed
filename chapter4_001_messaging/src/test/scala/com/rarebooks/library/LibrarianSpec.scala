@@ -280,6 +280,13 @@ class LibrarianSpec
       }
     }
 
+    "send Credit to customer that sent Complain" in {
+      val customerProbe = testKit.createTestProbe[Msg]()
+      val librarian = spawn(librarianTestApply())
+      librarian ! Complain(customerProbe.ref)
+      customerProbe.expectMessageType[Credit]
+    }
+
   }
 
 }
