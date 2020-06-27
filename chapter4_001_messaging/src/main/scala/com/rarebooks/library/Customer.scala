@@ -84,6 +84,8 @@ class Customer(
         Behaviors.same
       case c: Credit =>
         state = state.update(c)
+        context.log.info("Credit received, will start requesting again!")
+        requestBookInfo()
         Behaviors.same
       case GetCustomer(replyTo) =>
         replyTo ! state.model
