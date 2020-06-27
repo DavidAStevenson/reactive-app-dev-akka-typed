@@ -18,6 +18,8 @@ object Customer {
           copy(model.copy(found = model.found + b.size), timeInMillis = d)
         case BookNotFound(_, _, d) =>
           copy(model.copy(notFound = model.notFound + 1), timeInMillis = d)
+        case Credit(d) =>
+          copy(model.copy(notFound = 0), timeInMillis = d)
       }
   }
 
@@ -79,6 +81,9 @@ class Customer(
           f"${state.model.notFound}%d not found so far, shocker! My tolerance is ${tolerance}%d. Time to complain!"
         )
         b.replyTo ! Complain(context.self)
+        Behaviors.same
+      case c: Credit =>
+        state = state.update(c)
         Behaviors.same
       case GetCustomer(replyTo) =>
         replyTo ! state.model
