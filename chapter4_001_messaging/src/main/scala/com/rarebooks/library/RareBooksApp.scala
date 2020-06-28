@@ -17,7 +17,6 @@ object RareBooksApp {
 
       Thread.sleep(60000) // ugh
 
-      val system = context.system
       println(system.printTree)
       system.terminate()
 
