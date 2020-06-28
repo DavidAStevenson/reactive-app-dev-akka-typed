@@ -196,7 +196,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsCertain, ToleranceZero))
       val msg = rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
       msg.topic should not be empty
-      msg.topic.foreach(e => RareBooksProtocol.viableTopics should contain (e))
+      msg.topic.foreach(e => RareBooksProtocol.viableTopics should contain(e))
     }
 
   }
