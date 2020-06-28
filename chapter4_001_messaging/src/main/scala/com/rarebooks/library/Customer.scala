@@ -8,7 +8,7 @@ object Customer {
 
   import RareBooksProtocol._
 
-  case class CustomerModel(tolerance: Int, found: Int, notFound: Int)
+  case class CustomerModel(odds: Int, tolerance: Int, found: Int, notFound: Int)
   private case class State(model: CustomerModel, timeInMillis: Long) {
     def update(m: Msg): State =
       m match {
@@ -27,21 +27,23 @@ object Customer {
   private[library] final case class GetCustomer(replyTo: ActorRef[CustomerModel])
       extends PrivateCommand
 
-  def apply(rareBooks: ActorRef[RareBooksProtocol.Msg], tolerance: Int): Behavior[Msg] =
-    setup(rareBooks, tolerance).narrow
+  def apply(rareBooks: ActorRef[RareBooksProtocol.Msg], odds: Int, tolerance: Int): Behavior[Msg] =
+    setup(rareBooks, odds, tolerance).narrow
 
   private[library] def testApply(
       rareBooks: ActorRef[RareBooksProtocol.Msg],
+      odds: Int,
       tolerance: Int
   ): Behavior[BaseMsg] =
-    setup(rareBooks, tolerance)
+    setup(rareBooks, odds, tolerance)
 
   private[library] def setup(
       rareBooks: ActorRef[RareBooksProtocol.Msg],
+      odds: Int,
       tolerance: Int
   ): Behavior[BaseMsg] =
     Behaviors.setup[BaseMsg] { context =>
-      new Customer(context, rareBooks, tolerance).receive()
+      new Customer(context, rareBooks, odds, tolerance).receive()
     }
 
 }
@@ -49,13 +51,14 @@ object Customer {
 class Customer(
     context: ActorContext[RareBooksProtocol.BaseMsg],
     rareBooks: ActorRef[RareBooksProtocol.Msg],
+    odds: Int,
     tolerance: Int
 ) {
 
   import Customer._
   import RareBooksProtocol._
 
-  private var state = State(CustomerModel(tolerance, 0, 0), -1L)
+  private var state = State(CustomerModel(odds, tolerance, 0, 0), -1L)
 
   // kick off
   context.log.info("Customer started")
@@ -99,5 +102,6 @@ class Customer(
     rareBooks ! FindBookByTopic(Set(pickTopic), context.self)
 
   private def pickTopic: Topic =
-    if (Random.nextInt(100) < 50) viableTopics(Random.nextInt(viableTopics.size)) else Unknown
+    if (Random.nextInt(100) < state.model.odds) viableTopics(Random.nextInt(viableTopics.size))
+    else Unknown
 }
