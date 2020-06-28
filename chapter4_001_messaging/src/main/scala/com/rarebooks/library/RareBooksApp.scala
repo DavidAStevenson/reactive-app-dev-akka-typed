@@ -12,9 +12,15 @@ object RareBooksApp {
 
       val customer = context.spawn(Customer(rareBooks.ref, 80, 5), "customer1")
 
-      Thread.sleep(60000) // ugh
       val system = context.system
+      println(system.printTree)
+
+      Thread.sleep(60000) // ugh
+
+      val system = context.system
+      println(system.printTree)
       system.terminate()
+
       Behaviors.empty
     }
 
