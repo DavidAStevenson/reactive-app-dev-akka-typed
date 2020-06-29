@@ -16,7 +16,29 @@ object RareBooksApp {
 
   def main(args: Array[String]): Unit = {
     val actorSystem = ActorSystem[Command](RareBooksApp(), "RareBooksApp")
+    val console = new RareBooksConsole(actorSystem)
+    console.run()
+  }
+}
 
+import RareBooksApp._
+
+class RareBooksApp(context: ActorContext[Command]) {
+
+  val rareBooks = context.spawn(RareBooks("rareBooks-R-us"), "rareBooks")
+
+  private def run(nrOfCustomers: Int): Behavior[Command] =
+    Behaviors.receiveMessage {
+      case CreateCustomer(nrToCreate) if nrToCreate > 0 =>
+        for (i <- nrOfCustomers until (nrOfCustomers + nrToCreate))
+          context.spawn(Customer(rareBooks.ref, 80, 5), s"customer-${i}")
+      run(nrOfCustomers + nrToCreate)
+    }
+}
+
+class RareBooksConsole(actorSystem: ActorSystem[Command]) extends Console {
+
+  def run(): Unit = {
     println(actorSystem.printTree)
 
     actorSystem ! CreateCustomer(1)
@@ -32,19 +54,5 @@ object RareBooksApp {
     println(actorSystem.printTree)
     actorSystem.terminate()
   }
-}
 
-class RareBooksApp(context: ActorContext[RareBooksApp.Command]) {
-
-  import RareBooksApp._
-
-  val rareBooks = context.spawn(RareBooks("rareBooks-R-us"), "rareBooks")
-
-  private def run(nrOfCustomers: Int): Behavior[Command] =
-    Behaviors.receiveMessage {
-      case CreateCustomer(nrToCreate) if nrToCreate > 0 =>
-        for (i <- nrOfCustomers until (nrOfCustomers + nrToCreate))
-          context.spawn(Customer(rareBooks.ref, 80, 5), s"customer-${i}")
-      run(nrOfCustomers + nrToCreate)
-    }
 }
