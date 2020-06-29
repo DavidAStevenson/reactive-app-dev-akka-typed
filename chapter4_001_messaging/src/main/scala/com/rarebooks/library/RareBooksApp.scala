@@ -2,9 +2,6 @@ package com.rarebooks.library
 
 import akka.actor.typed.{ ActorSystem, Behavior }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
-import akka.NotUsed
-import scala.annotation.tailrec
-import scala.io.StdIn
 
 object RareBooksApp {
 
@@ -36,33 +33,4 @@ class RareBooksApp(context: ActorContext[Command]) {
           context.spawn(Customer(rareBooks.ref, odds, tolerance), s"customer-${i}")
         run(nrOfCustomers + nrToCreate)
     }
-}
-
-class RareBooksConsole(actorSystem: ActorSystem[Command]) extends Console {
-
-  def run(): Unit = {
-    println(actorSystem.printTree)
-
-    println(
-      f"{} running%nEnter commands [`q` = quit, `2c` = 2 customers, etc.]:",
-      getClass.getSimpleName
-    )
-
-    commandLoop()
-  }
-
-  @tailrec
-  private def commandLoop(): Unit = {
-    println(actorSystem.printTree)
-    Command(StdIn.readLine()) match {
-      case Command.Customer(count, odds, tolerance) =>
-        actorSystem ! CreateCustomer(count, odds, tolerance)
-        commandLoop()
-      case Command.Quit =>
-        actorSystem.terminate()
-      case Command.Unknown(command) =>
-        println(s"Unknown command $command")
-        commandLoop()
-    }
-  }
 }
