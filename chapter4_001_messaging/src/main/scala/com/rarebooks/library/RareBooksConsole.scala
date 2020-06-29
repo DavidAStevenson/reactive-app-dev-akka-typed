@@ -12,8 +12,7 @@ class RareBooksConsole(actorSystem: ActorSystem[Command]) extends Console {
     println(actorSystem.printTree)
 
     println(
-      f"{} running%nEnter commands [`q` = quit, `2c` = 2 customers, etc.]:",
-      getClass.getSimpleName
+      f"${getClass.getSimpleName} running%nEnter commands [`q` = quit, `2c` = 2 customers, etc.]:"
     )
 
     commandLoop()
