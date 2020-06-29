@@ -9,7 +9,7 @@ import scala.io.StdIn
 object RareBooksApp {
 
   sealed trait Command
-  case class CreateCustomer(nr: Int) extends Command
+  case class CreateCustomer(count: Int, odds: Int, tolerance: Int) extends Command
 
   def apply(): Behavior[RareBooksApp.Command] =
     Behaviors.setup[Command] { context =>
@@ -31,9 +31,9 @@ class RareBooksApp(context: ActorContext[Command]) {
 
   private def run(nrOfCustomers: Int): Behavior[Command] =
     Behaviors.receiveMessage {
-      case CreateCustomer(nrToCreate) if nrToCreate > 0 =>
+      case CreateCustomer(nrToCreate, odds, tolerance) if nrToCreate > 0 =>
         for (i <- nrOfCustomers until (nrOfCustomers + nrToCreate))
-          context.spawn(Customer(rareBooks.ref, 80, 5), s"customer-${i}")
+          context.spawn(Customer(rareBooks.ref, odds, tolerance), s"customer-${i}")
         run(nrOfCustomers + nrToCreate)
     }
 }
@@ -56,7 +56,7 @@ class RareBooksConsole(actorSystem: ActorSystem[Command]) extends Console {
     println(actorSystem.printTree)
     Command(StdIn.readLine()) match {
       case Command.Customer(count, odds, tolerance) =>
-        actorSystem ! CreateCustomer(count)
+        actorSystem ! CreateCustomer(count, odds, tolerance)
         commandLoop()
       case Command.Quit =>
         actorSystem.terminate()
