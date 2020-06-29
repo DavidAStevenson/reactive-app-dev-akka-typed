@@ -2,7 +2,7 @@ lazy val akkaVersion = "2.6.6"
 lazy val scalaTestVersion = "3.1.2"
 lazy val logbackVersion = "1.2.3"
 
-scalaVersion := "2.12.11"
+scalaVersion := "2.13.3"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed"         % akkaVersion,
