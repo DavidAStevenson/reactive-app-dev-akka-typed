@@ -18,16 +18,13 @@ trait Console {
     def parseCommand(s: String): Command =
       parseAll(parser, s) match {
         case Success(command, _) => command
-        case _ => Command.Unknown(s)
+        case _                   => Command.Unknown(s)
       }
 
     def createCustomer: Parser[Command.Customer] =
       opt(int) ~ ("customer|c".r ~> opt(int) ~ opt(int)) ^^ {
         case count ~ (odds ~ tolerance) =>
-          Command.Customer(
-            count getOrElse 1,
-            odds getOrElse 75,
-            tolerance getOrElse 3)
+          Command.Customer(count getOrElse 1, odds getOrElse 75, tolerance getOrElse 3)
       }
 
     def quit: Parser[Command.Quit.type] =

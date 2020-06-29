@@ -34,7 +34,7 @@ class RareBooksApp(context: ActorContext[Command]) {
       case CreateCustomer(nrToCreate) if nrToCreate > 0 =>
         for (i <- nrOfCustomers until (nrOfCustomers + nrToCreate))
           context.spawn(Customer(rareBooks.ref, 80, 5), s"customer-${i}")
-      run(nrOfCustomers + nrToCreate)
+        run(nrOfCustomers + nrToCreate)
     }
 }
 
@@ -43,7 +43,10 @@ class RareBooksConsole(actorSystem: ActorSystem[Command]) extends Console {
   def run(): Unit = {
     println(actorSystem.printTree)
 
-    println(f"{} running%nEnter commands [`q` = quit, `2c` = 2 customers, etc.]:", getClass.getSimpleName)
+    println(
+      f"{} running%nEnter commands [`q` = quit, `2c` = 2 customers, etc.]:",
+      getClass.getSimpleName
+    )
 
     commandLoop()
   }
