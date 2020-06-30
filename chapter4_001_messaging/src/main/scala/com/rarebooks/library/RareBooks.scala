@@ -4,22 +4,23 @@ import scala.concurrent.duration.{ MILLISECONDS => Millis, FiniteDuration, Durat
 import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, StashBuffer, TimerScheduler }
 
+import RareBooksProtocol._
+
 object RareBooks {
 
-  sealed trait PrivateCommand extends RareBooksProtocol.BaseMsg
+  sealed trait PrivateCommand extends BaseMsg
   private[library] case object Open extends PrivateCommand
   private[library] case object Close extends PrivateCommand
   private[library] case object Report extends PrivateCommand
-  private[library] case class ChangeLibrarian(librarian: ActorRef[RareBooksProtocol.Msg])
-      extends PrivateCommand
+  private[library] case class ChangeLibrarian(librarian: ActorRef[Msg]) extends PrivateCommand
 
   private case object TimerKey
 
-  def apply(name: String): Behavior[RareBooksProtocol.Msg] =
+  def apply(name: String): Behavior[Msg] =
     setup(name).narrow
 
-  private[library] def setup(name: String): Behavior[RareBooksProtocol.BaseMsg] =
-    Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
+  private[library] def setup(name: String): Behavior[BaseMsg] =
+    Behaviors.setup[BaseMsg] { context =>
       val stashSize = context.system.settings.config.getInt("rare-books.stash-size")
       Behaviors.withStash(stashSize) { buffer =>
         Behaviors.withTimers { timers =>
@@ -30,13 +31,12 @@ object RareBooks {
 
 }
 class RareBooks(
-    context: ActorContext[RareBooksProtocol.BaseMsg],
-    timers: TimerScheduler[RareBooksProtocol.BaseMsg],
-    buffer: StashBuffer[RareBooksProtocol.BaseMsg],
+    context: ActorContext[BaseMsg],
+    timers: TimerScheduler[BaseMsg],
+    buffer: StashBuffer[BaseMsg],
     bookStoreName: String
 ) {
   import RareBooks._
-  import RareBooksProtocol._
 
   private val openDuration: FiniteDuration =
     Duration(context.system.settings.config.getDuration("rare-books.open-duration", Millis), Millis)

@@ -4,33 +4,33 @@ import scala.concurrent.duration.FiniteDuration
 import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, StashBuffer, TimerScheduler }
 
+import RareBooksProtocol._
+
 object Librarian {
 
-  import RareBooksProtocol._
-
-  sealed trait PrivateCommand extends RareBooksProtocol.BaseMsg
+  sealed trait PrivateCommand extends BaseMsg
   private[library] case class GetState(replyTo: ActorRef[PrivateResponse]) extends PrivateCommand
   case class NotifyResearchResult(
-      result: RareBooksProtocol.Msg,
-      replyTo: ActorRef[RareBooksProtocol.Msg]
+      result: Msg,
+      replyTo: ActorRef[Msg]
   ) extends PrivateCommand
 
-  sealed trait PrivateResponse extends RareBooksProtocol.BaseMsg
+  sealed trait PrivateResponse extends BaseMsg
   private[library] case object Busy extends PrivateResponse
   private[library] case object Ready extends PrivateResponse
   private[library] case class Busy(stashSize: Int) extends PrivateResponse
 
   private case object TimerKey
 
-  def apply(findBookDuration: FiniteDuration): Behavior[RareBooksProtocol.Msg] =
+  def apply(findBookDuration: FiniteDuration): Behavior[Msg] =
     Behaviors.setup { context =>
       setup(findBookDuration).narrow
     }
 
   private[library] def setup(
       findBookDuration: FiniteDuration
-  ): Behavior[RareBooksProtocol.BaseMsg] =
-    Behaviors.setup[RareBooksProtocol.BaseMsg] { context =>
+  ): Behavior[BaseMsg] =
+    Behaviors.setup[BaseMsg] { context =>
       Behaviors.withTimers { timers =>
         val stashSize = context.system.settings.config.getInt("rare-books.librarian.stash-size")
         Behaviors.withStash(stashSize) { buffer =>
@@ -42,18 +42,17 @@ object Librarian {
 }
 
 class Librarian(
-    context: ActorContext[RareBooksProtocol.BaseMsg],
-    timers: TimerScheduler[RareBooksProtocol.BaseMsg],
-    buffer: StashBuffer[RareBooksProtocol.BaseMsg],
+    context: ActorContext[BaseMsg],
+    timers: TimerScheduler[BaseMsg],
+    buffer: StashBuffer[BaseMsg],
     findBookDuration: FiniteDuration
 ) {
 
   context.log.info("Librarian started")
 
   import Librarian._
-  import RareBooksProtocol._
 
-  protected def ready(): Behavior[RareBooksProtocol.BaseMsg] =
+  protected def ready(): Behavior[BaseMsg] =
     Behaviors.receiveMessage {
       case Complain(replyTo, _) =>
         context.log.info(s"Credit issued to customer ${replyTo}")
@@ -67,7 +66,7 @@ class Librarian(
         Behaviors.same
     }
 
-  protected def busy(): Behavior[RareBooksProtocol.BaseMsg] =
+  protected def busy(): Behavior[BaseMsg] =
     Behaviors.receiveMessage {
       case NotifyResearchResult(result, replyTo) =>
         replyTo ! result
@@ -93,7 +92,7 @@ class Librarian(
       case None    => Left(BookNotFound(s"No book(s) matching ${value}.", context.self))
     }
 
-  private def research(request: RareBooksProtocol.Msg): Unit = {
+  private def research(request: Msg): Unit = {
     request match {
       case FindBookByTopic(topic, replyTo, _) =>
         process(optToEither(topic, Catalog.findBookByTopic), replyTo)

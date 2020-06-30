@@ -4,9 +4,9 @@ import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
 import scala.util.Random
 
-object Customer {
+import RareBooksProtocol._
 
-  import RareBooksProtocol._
+object Customer {
 
   case class CustomerModel(odds: Int, tolerance: Int, found: Int, notFound: Int)
   private case class State(model: CustomerModel, timeInMillis: Long) {
@@ -27,18 +27,18 @@ object Customer {
   private[library] final case class GetCustomer(replyTo: ActorRef[CustomerModel])
       extends PrivateCommand
 
-  def apply(rareBooks: ActorRef[RareBooksProtocol.Msg], odds: Int, tolerance: Int): Behavior[Msg] =
+  def apply(rareBooks: ActorRef[Msg], odds: Int, tolerance: Int): Behavior[Msg] =
     setup(rareBooks, odds, tolerance).narrow
 
   private[library] def testApply(
-      rareBooks: ActorRef[RareBooksProtocol.Msg],
+      rareBooks: ActorRef[Msg],
       odds: Int,
       tolerance: Int
   ): Behavior[BaseMsg] =
     setup(rareBooks, odds, tolerance)
 
   private[library] def setup(
-      rareBooks: ActorRef[RareBooksProtocol.Msg],
+      rareBooks: ActorRef[Msg],
       odds: Int,
       tolerance: Int
   ): Behavior[BaseMsg] =
@@ -49,14 +49,13 @@ object Customer {
 }
 
 class Customer(
-    context: ActorContext[RareBooksProtocol.BaseMsg],
-    rareBooks: ActorRef[RareBooksProtocol.Msg],
+    context: ActorContext[BaseMsg],
+    rareBooks: ActorRef[Msg],
     odds: Int,
     tolerance: Int
 ) {
 
   import Customer._
-  import RareBooksProtocol._
 
   private var state = State(CustomerModel(odds, tolerance, 0, 0), -1L)
 
@@ -64,21 +63,21 @@ class Customer(
   context.log.info("Customer started")
   requestBookInfo()
 
-  protected def receive(): Behavior[RareBooksProtocol.BaseMsg] =
+  protected def receive(): Behavior[BaseMsg] =
     Behaviors.receiveMessage {
-      case b: RareBooksProtocol.BookFound =>
+      case b: BookFound =>
         context.log.info(f"${b.books.size}%d Book(s) found!")
         state = state.update(b)
         requestBookInfo()
         Behaviors.same
-      case b: RareBooksProtocol.BookNotFound if state.model.notFound < state.model.tolerance =>
+      case b: BookNotFound if state.model.notFound < state.model.tolerance =>
         state = state.update(b)
         context.log.info(
           f"${state.model.notFound}%d not found so far, shocker! My tolerance is ${tolerance}%d"
         )
         requestBookInfo()
         Behaviors.same
-      case b: RareBooksProtocol.BookNotFound =>
+      case b: BookNotFound =>
         state = state.update(b)
         context.log.info(
           f"${state.model.notFound}%d not found so far, shocker! My tolerance is ${tolerance}%d. Time to complain!"
@@ -93,7 +92,7 @@ class Customer(
       case GetCustomer(replyTo) =>
         replyTo ! state.model
         Behaviors.same
-      case m: RareBooksProtocol.Msg =>
+      case m: Msg =>
         context.log.info(s"Received a message: ${m}")
         Behaviors.same
     }
