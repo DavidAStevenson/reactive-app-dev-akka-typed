@@ -2,15 +2,19 @@ import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.scaladsl.{ AbstractBehavior, ActorContext, Behaviors }
 import akka.actor.typed.receptionist.{ ServiceKey }
 
-import java.util.{Currency, Locale}
+import java.util.{ Currency, Locale }
 
 object Guidebook {
 
   sealed trait Command
-  case class Inquiry(countryCode: String, replyTo: ActorRef[Response]) extends Command with CborSerializable
+  case class Inquiry(countryCode: String, replyTo: ActorRef[Response])
+      extends Command
+      with CborSerializable
 
   sealed trait Response
-  case class Guidance(countryCode: String, description: String) extends Response with CborSerializable
+  case class Guidance(countryCode: String, description: String)
+      extends Response
+      with CborSerializable
 
   val GuidebookServiceKey = ServiceKey[Guidebook.Inquiry]("GuidebookService")
 
@@ -32,9 +36,7 @@ private class Guidebook(context: ActorContext[Command]) extends AbstractBehavior
     msg match {
       case Inquiry(countryCode, replyTo) =>
         println(s"Actor ${context.self} responding to inquiry about $countryCode")
-        Locale.getAvailableLocales.
-        filter(_.getCountry == countryCode).
-        foreach { locale =>
+        Locale.getAvailableLocales.filter(_.getCountry == countryCode).foreach { locale =>
           replyTo ! Guidance(countryCode, describe(locale))
         }
     }

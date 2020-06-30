@@ -8,17 +8,18 @@ import java.util.Locale
 object TourismWorld {
 
   def apply() =
-    Behaviors.setup[Nothing] { context =>
+    Behaviors
+      .setup[Nothing] { context =>
+        val group = Routers.group(Guidebook.GuidebookServiceKey)
+        val router = context.spawn(group, "guidebook-group")
 
-      val group = Routers.group(Guidebook.GuidebookServiceKey)
-      val router = context.spawn(group, "guidebook-group")
+        val tourist = context.spawn(Tourist(router), s"tourist")
+        Thread.sleep(5000) // YUCK!
+        tourist ! Tourist.Start((Locale.getISOCountries).toIndexedSeq)
 
-      val tourist = context.spawn(Tourist(router), s"tourist")
-      Thread.sleep(5000) // YUCK!
-      tourist ! Tourist.Start((Locale.getISOCountries).toIndexedSeq)
-
-      Behaviors.same
-    }.narrow
+        Behaviors.same
+      }
+      .narrow
 
 }
 
@@ -34,9 +35,11 @@ object TouristMain {
   }
 
   def startup(port: Int): Unit = {
-    val config = ConfigFactory.parseString(s"""
+    val config = ConfigFactory
+      .parseString(s"""
       akka.remote.artery.canonical.port=$port
-      """).withFallback(ConfigFactory.load())
+      """)
+      .withFallback(ConfigFactory.load())
 
     ActorSystem[Nothing](TourismWorld(), "TourismWorld", config)
   }

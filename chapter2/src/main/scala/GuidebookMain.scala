@@ -10,14 +10,16 @@ object GuidebookWorld {
 
   def apply() =
     Behaviors.setup[Nothing] { context =>
-
       val pool = Routers.pool(poolSize = 3)(
-          // make sure the workers are restarted if they fail
-          Behaviors.supervise(Guidebook()).onFailure[Exception](SupervisorStrategy.restart))
+        // make sure the workers are restarted if they fail
+        Behaviors.supervise(Guidebook()).onFailure[Exception](SupervisorStrategy.restart)
+      )
       val router = context.spawn(pool, "guidebook-pool")
       context.watch(router)
 
-      println(s"GuidebookWorld registering ${router} with receptionist, key: ${GuidebookServiceKey}")
+      println(
+        s"GuidebookWorld registering ${router} with receptionist, key: ${GuidebookServiceKey}"
+      )
       context.system.receptionist ! Receptionist.Register(GuidebookServiceKey, router)
 
       Behaviors.empty
@@ -36,9 +38,11 @@ object GuidebookMain {
   }
 
   def startup(port: Int): Unit = {
-    val config = ConfigFactory.parseString(s"""
+    val config = ConfigFactory
+      .parseString(s"""
       akka.remote.artery.canonical.port=$port
-      """).withFallback(ConfigFactory.load())
+      """)
+      .withFallback(ConfigFactory.load())
 
     ActorSystem[Nothing](GuidebookWorld(), "TourismWorld", config)
   }

@@ -13,7 +13,7 @@ object Tourist {
 
 import Tourist._
 private class Tourist(context: ActorContext[Command], guidebook: ActorRef[Guidebook.Inquiry])
-  extends AbstractBehavior[Command](context) {
+    extends AbstractBehavior[Command](context) {
 
   println(s"Tourist created with ${guidebook} as its Guide...")
 
