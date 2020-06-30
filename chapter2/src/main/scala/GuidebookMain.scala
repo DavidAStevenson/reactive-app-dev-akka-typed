@@ -8,8 +8,8 @@ object GuidebookWorld {
 
   import Guidebook._
 
-  def apply(): Behavior[Guidebook.Inquiry] =
-    Behaviors.setup { context =>
+  def apply() =
+    Behaviors.setup[Nothing] { context =>
 
       val pool = Routers.pool(poolSize = 3)(
           // make sure the workers are restarted if they fail
@@ -40,6 +40,6 @@ object GuidebookMain {
       akka.remote.artery.canonical.port=$port
       """).withFallback(ConfigFactory.load())
 
-    ActorSystem(GuidebookWorld(), "TourismWorld", config)
+    ActorSystem[Nothing](GuidebookWorld(), "TourismWorld", config)
   }
 }

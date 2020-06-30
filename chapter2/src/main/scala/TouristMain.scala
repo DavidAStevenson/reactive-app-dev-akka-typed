@@ -7,7 +7,7 @@ import java.util.Locale
 
 object TourismWorld {
 
-  def apply(): Behavior[Nothing] =
+  def apply() =
     Behaviors.setup[Nothing] { context =>
 
       val group = Routers.group(Guidebook.GuidebookServiceKey)
