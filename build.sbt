@@ -3,6 +3,6 @@ lazy val commonSettings = Seq(
   scalacOptions += "-deprecation"
 )
 
-lazy val chapter2 = project
+lazy val chapter2 = project.settings(commonSettings)
 
 lazy val chapter4_001_messaging = project.settings(commonSettings)
