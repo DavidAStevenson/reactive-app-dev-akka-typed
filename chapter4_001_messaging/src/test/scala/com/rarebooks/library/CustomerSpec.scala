@@ -17,7 +17,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   "Receiving BookFound" should {
 
     "log BookFound at info" in {
-      val customer = spawn(Customer(system.deadLetters, OddsCertain, ToleranceNonZero))
+      val customer = spawn(Customer(system.ignoreRef, OddsCertain, ToleranceNonZero))
       val bookFound = BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
       LoggingTestKit.info("1 Book(s) found!").expect {
         customer ! bookFound
@@ -72,7 +72,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   "Receiving BookNotFound with not found count less than tolerance" should {
 
     "log BookNotFound at info" in {
-      val customer = spawn(Customer(system.deadLetters, OddsZero, ToleranceNonZero))
+      val customer = spawn(Customer(system.ignoreRef, OddsZero, ToleranceNonZero))
       LoggingTestKit
         .info(f"1 not found so far, shocker! My tolerance is ${ToleranceNonZero}%d")
         .expect {
@@ -104,7 +104,7 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   "Receiving BookNotFound with not found count at tolerance level or more" should {
 
     "log BookNotFound at info, with tolerance reached" in {
-      val customer = spawn(Customer(system.deadLetters, OddsZero, ToleranceZero))
+      val customer = spawn(Customer(system.ignoreRef, OddsZero, ToleranceZero))
       LoggingTestKit
         .info(f"1 not found so far, shocker! My tolerance is ${ToleranceZero}%d. Time to complain!")
         .expect {
