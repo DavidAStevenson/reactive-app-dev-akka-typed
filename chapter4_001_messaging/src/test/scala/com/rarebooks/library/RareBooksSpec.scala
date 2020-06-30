@@ -146,8 +146,7 @@ class RareBooksAsyncSpec
         val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
         rareBooks ! RareBooks.ChangeLibrarian(librarianProbe.ref)
 
-        val customerProbe = testKit.createTestProbe[Msg]()
-        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+        val msg = FindBookByTopic(Set(Greece), system.ignoreRef)
         rareBooks ! msg
         librarianProbe.expectMessage(msg)
       }
@@ -156,8 +155,7 @@ class RareBooksAsyncSpec
         val actorName = "rareBooks-sending2"
         val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
 
-        val customerProbe = testKit.createTestProbe[Msg]()
-        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+        val msg = FindBookByTopic(Set(Greece), system.ignoreRef)
         rareBooks ! msg
 
         LoggingTestKit.info(reportLogOne).expect {
@@ -169,8 +167,7 @@ class RareBooksAsyncSpec
         val actorName = "rareBooks-sending3"
         val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
 
-        val customerProbe = testKit.createTestProbe[Msg]()
-        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+        val msg = FindBookByTopic(Set(Greece), system.ignoreRef)
         rareBooks ! msg
 
         LoggingTestKit.info(reportLogOne).expect {
@@ -202,8 +199,7 @@ class RareBooksAsyncSpec
         val librarianProbe = testKit.createTestProbe[Msg]()
         val actorName = "rareBooks-stashing"
         val rareBooks = spawn(rareBooksTestApply(actorName), actorName)
-        val customerProbe = testKit.createTestProbe[Msg]()
-        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+        val msg = FindBookByTopic(Set(Greece), system.ignoreRef)
 
         rareBooks ! RareBooks.ChangeLibrarian(librarianProbe.ref)
         rareBooks ! RareBooks.Close
@@ -215,14 +211,11 @@ class RareBooksAsyncSpec
       }
 
       "log a warning when the stash is full" in {
-        val librarianProbe = testKit.createTestProbe[Msg]()
         val actorName = "rareBooks-stashFull"
         val rareBooks = spawn(rareBooksTestApply(actorName))
-        val customerProbe = testKit.createTestProbe[Msg]()
-        val msg = FindBookByTopic(Set(Greece), customerProbe.ref)
+        val msg = FindBookByTopic(Set(Greece), system.ignoreRef)
         val stashSize = conf.getInt("rare-books.stash-size")
 
-        rareBooks ! RareBooks.ChangeLibrarian(librarianProbe.ref)
         rareBooks ! RareBooks.Close
 
         for (i <- 1 to stashSize)

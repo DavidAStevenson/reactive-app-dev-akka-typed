@@ -243,9 +243,8 @@ class LibrarianSpec
     }
 
     "log a warning when the stash is full" in {
-      val customerProbe = testKit.createTestProbe[Msg]()
       val isbn = "0123456789"
-      val msg = FindBookByIsbn(isbn, customerProbe.ref)
+      val msg = FindBookByIsbn(isbn, system.ignoreRef)
       val librarian = spawn(librarianTestApply())
 
       val stateProbe = testKit.createTestProbe[Librarian.PrivateResponse]()
@@ -273,10 +272,9 @@ class LibrarianSpec
 
   "Receiving a Complain" should {
     "log Credit issued to customer" in {
-      val customerProbe = testKit.createTestProbe[Msg]()
       val librarian = spawn(librarianTestApply())
-      LoggingTestKit.info(s"Credit issued to customer ${customerProbe.ref}").expect {
-        librarian ! Complain(customerProbe.ref)
+      LoggingTestKit.info(s"Credit issued to customer ${system.ignoreRef}").expect {
+        librarian ! Complain(system.ignoreRef)
       }
     }
 
