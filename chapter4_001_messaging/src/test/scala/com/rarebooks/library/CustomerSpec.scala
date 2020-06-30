@@ -25,17 +25,17 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "send another FindBookByTopic message" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsCertain, ToleranceNonZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
       customer ! BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
     }
 
     "increase Customer.model.bookFound by 1 for 1 book found" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsCertain, ToleranceNonZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
       val bookFound = BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
       customer ! bookFound
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
@@ -44,9 +44,9 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "increase Customer.model.bookFound by 2 for 2 books found" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsCertain, ToleranceNonZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
       val bookFound = BookFound(findBookByTopic(Set(Greece)).get)
       customer ! bookFound
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
@@ -55,9 +55,9 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "increase Customer.model.bookFound for 2 BookFound messages (1+2 books)" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsCertain, ToleranceNonZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
       val bookFound1 = BookFound(findBookByIsbn(theEpicOfGilgamesh.isbn).get)
       customer ! bookFound1
       val bookFound2 = BookFound(findBookByTopic(Set(Greece)).get)
@@ -81,9 +81,9 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "increase Customer.model.bookNotFound by 1 for 1 book not found" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsZero, ToleranceNonZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
       val bookNotFound = BookNotFound("We don't have such type of books!", system.ignoreRef)
       customer ! bookNotFound
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
@@ -92,11 +92,11 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "send another FindBookByTopic message" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsZero, ToleranceNonZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
       customer ! BookNotFound("No books like that.", system.ignoreRef)
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
     }
 
   }
@@ -113,9 +113,9 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "increase Customer.model.bookNotFound by 1 for 1 book not found" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsZero, ToleranceZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
       val bookNotFound = BookNotFound("We don't have such type of books!", system.ignoreRef)
       customer ! bookNotFound
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
@@ -124,18 +124,18 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "send a Complaint to the Librarian" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsZero, ToleranceZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
-      val librarian = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      rarebooks.expectMessageType[FindBookByTopic]
+      val librarian = testKit.createTestProbe[Msg]()
       customer ! BookNotFound("We don't have such type of books!", librarian.ref)
-      librarian.expectMessageType[RareBooksProtocol.Complain]
+      librarian.expectMessageType[Complain]
     }
 
     "stop sending FindBook requests" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsZero, ToleranceZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
       customer ! BookNotFound("We don't have such type of books!", system.ignoreRef)
       rarebooks.expectNoMessage()
     }
@@ -145,13 +145,13 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
   "Receiving Credit" should {
 
     "reset the Customer's tolerance" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsZero, ToleranceZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
 
-      val librarian = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val librarian = testKit.createTestProbe[Msg]()
       customer ! BookNotFound("We don't have such type of books!", librarian.ref)
-      librarian.expectMessageType[RareBooksProtocol.Complain]
+      librarian.expectMessageType[Complain]
 
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
       customer ! Customer.GetCustomer(testProbe.ref)
@@ -164,13 +164,13 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
     }
 
     "make the Customer resume sending FindBook requests" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsZero, ToleranceZero))
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
 
-      val librarian = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val librarian = testKit.createTestProbe[Msg]()
       customer ! BookNotFound("We don't have such type of books!", librarian.ref)
-      librarian.expectMessageType[RareBooksProtocol.Complain]
+      librarian.expectMessageType[Complain]
 
       val testProbe = testKit.createTestProbe[Customer.CustomerModel]()
       customer ! Customer.GetCustomer(testProbe.ref)
@@ -178,22 +178,22 @@ class CustomerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
 
       customer ! Credit()
 
-      rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      rarebooks.expectMessageType[FindBookByTopic]
     }
   }
 
   "Picking Topic" should {
     "pick Unknown when Customer state has zero odds" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsZero, ToleranceZero))
-      val msg = rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      val msg = rarebooks.expectMessageType[FindBookByTopic]
       msg.topic shouldBe Set(Unknown)
     }
 
     "pick a viableTopic when Customer state has certain odds" in {
-      val rarebooks = testKit.createTestProbe[RareBooksProtocol.Msg]()
+      val rarebooks = testKit.createTestProbe[Msg]()
       val customer = spawn(Customer.testApply(rarebooks.ref, OddsCertain, ToleranceZero))
-      val msg = rarebooks.expectMessageType[RareBooksProtocol.FindBookByTopic]
+      val msg = rarebooks.expectMessageType[FindBookByTopic]
       msg.topic should not be empty
       msg.topic.foreach(e => RareBooksProtocol.viableTopics should contain(e))
     }
