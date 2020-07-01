@@ -1,4 +1,4 @@
-name := "RareBooks-initial"
+name := "chapter4_001_messaging"
 version := "1.0"
 scalaVersion := "2.13.3"
 
