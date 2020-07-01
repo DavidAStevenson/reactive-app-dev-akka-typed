@@ -9,8 +9,6 @@ import RareBooksApp._
 class RareBooksConsole(actorSystem: ActorSystem[Command]) extends Console {
 
   def run(): Unit = {
-    println(actorSystem.printTree)
-
     println(
       f"${getClass.getSimpleName} running%nEnter commands [`q` = quit, `2c` = 2 customers, etc.]:"
     )
