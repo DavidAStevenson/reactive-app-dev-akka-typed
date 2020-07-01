@@ -21,3 +21,6 @@ sbt> project chapter2
 ```
 
 See README.md in subproject directories for more on each.
+
+- [chapter2](chapter2/README.md)
+- [chapter4_001_messaging](chapter4_001_messaging/README.md)
