@@ -1,6 +1,6 @@
 # Chapter 4: Akka Basic Toolkit - Elasticity
 
-Refer to the [book's original repository](https://github.com/ironfish/reactive-application-development-scala/tree/master/chapter4_001_messaging) for details of the functionality of these actors.
+Refer to the [book's original repository](https://github.com/ironfish/reactive-application-development-scala/tree/master/chapter4_002_elasticity) for details of the functionality of these actors.
 
 This project largely replicates the functionality of the actors in the book, but using the new Akka Typed APIs.
 
