@@ -24,6 +24,7 @@ class RareBooksConsole(actorSystem: ActorSystem[Command]) extends Console {
         actorSystem ! CreateCustomer(count, odds, tolerance)
         commandLoop()
       case Command.Quit =>
+        println(actorSystem.printTree)
         actorSystem.terminate()
       case Command.Unknown(command) =>
         println(s"Unknown command $command")
