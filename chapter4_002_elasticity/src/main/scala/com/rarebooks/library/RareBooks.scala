@@ -53,7 +53,8 @@ class RareBooks(
       Millis
     )
 
-  private val nbrOfLibrarians: Int = context.system.settings.config.getInt("rare-books.nbr-of-librarians")
+  private val nbrOfLibrarians: Int =
+    context.system.settings.config.getInt("rare-books.nbr-of-librarians")
 
   private var librarianRouter = createLibrarianRouter(findBookDuration)
   private var requestsToday: Int = 0
@@ -120,7 +121,7 @@ class RareBooks(
     }
 
   private def createLibrarianRouter(findBookDuration: FiniteDuration): ActorRef[Msg] = {
-    val pool = Routers.pool(poolSize = nbrOfLibrarians){
+    val pool = Routers.pool(poolSize = nbrOfLibrarians) {
       Librarian(findBookDuration)
     }
     context.spawn(pool, "librarian-router")
