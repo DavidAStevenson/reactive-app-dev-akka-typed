@@ -24,3 +24,4 @@ See README.md in subproject directories for more on each.
 
 - [chapter2](chapter2/README.md)
 - [chapter4_001_messaging](chapter4_001_messaging/README.md)
+- [chapter4_002_elasticity](chapter4_002_elasticity/README.md)
