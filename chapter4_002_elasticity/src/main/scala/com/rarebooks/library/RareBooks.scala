@@ -53,6 +53,8 @@ class RareBooks(
       Millis
     )
 
+  private val nbrOfLibrarians: Int = context.system.settings.config.getInt("rare-books.nbr-of-librarians")
+
   private var librarian = createLibrarian(findBookDuration)
   private var requestsToday: Int = 0
   private var totalRequests: Int = 0
