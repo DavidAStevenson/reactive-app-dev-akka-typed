@@ -1,4 +1,4 @@
-name := "chapter4_001_elasticity"
+name := "chapter4_002_elasticity"
 version := "1.0"
 scalaVersion := "2.13.3"
 
