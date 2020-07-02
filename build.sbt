@@ -7,3 +7,4 @@ lazy val chapter2 = project.settings(commonSettings)
 
 lazy val chapter4_001_messaging = project.settings(commonSettings)
 lazy val chapter4_002_elasticity = project.settings(commonSettings)
+lazy val chapter4_003_faulty = project.settings(commonSettings)
