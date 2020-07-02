@@ -29,8 +29,10 @@ class RareBooksApp(context: ActorContext[Command]) {
   private def run(nrOfCustomers: Int): Behavior[Command] =
     Behaviors.receiveMessage {
       case CreateCustomer(nrToCreate, odds, tolerance) if nrToCreate > 0 =>
-        for (i <- nrOfCustomers until (nrOfCustomers + nrToCreate))
+        val targetNumber = nrOfCustomers + nrToCreate
+        (nrOfCustomers until targetNumber).foreach { i =>
           context.spawn(Customer(rareBooks.ref, odds, tolerance), s"customer-${i}")
-        run(nrOfCustomers + nrToCreate)
+        }
+        run(targetNumber)
     }
 }
