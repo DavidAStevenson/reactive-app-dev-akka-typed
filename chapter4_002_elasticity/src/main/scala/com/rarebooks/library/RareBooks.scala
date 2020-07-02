@@ -2,7 +2,7 @@ package com.rarebooks.library
 
 import scala.concurrent.duration.{ MILLISECONDS => Millis, FiniteDuration, Duration, SECONDS }
 import akka.actor.typed.{ ActorRef, Behavior }
-import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, StashBuffer, TimerScheduler }
+import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, Routers, StashBuffer, TimerScheduler }
 
 import RareBooksProtocol._
 
@@ -55,7 +55,7 @@ class RareBooks(
 
   private val nbrOfLibrarians: Int = context.system.settings.config.getInt("rare-books.nbr-of-librarians")
 
-  private var librarian = createLibrarian(findBookDuration)
+  private var librarianRouter = createLibrarianRouter(findBookDuration)
   private var requestsToday: Int = 0
   private var totalRequests: Int = 0
 
@@ -73,7 +73,7 @@ class RareBooks(
     Behaviors.receiveMessage {
       case msg: Msg =>
         logInfo("Received a Msg. Forwarding it to librarian")
-        librarian ! msg
+        librarianRouter ! msg
         requestsToday += 1
         Behaviors.same
       case Open =>
@@ -119,13 +119,16 @@ class RareBooks(
         Behaviors.same
     }
 
-  private def createLibrarian(findBookDuration: FiniteDuration): ActorRef[Msg] = {
-    context.spawn(Librarian(findBookDuration), "librarian")
+  private def createLibrarianRouter(findBookDuration: FiniteDuration): ActorRef[Msg] = {
+    val pool = Routers.pool(poolSize = nbrOfLibrarians){
+      Librarian(findBookDuration)
+    }
+    context.spawn(pool, "librarian-router")
   }
 
   private def changeLibrarian(ref: ActorRef[Msg]) = {
-    context.stop(librarian)
-    librarian = ref
+    context.stop(librarianRouter)
+    librarianRouter = ref
   }
 
 }
