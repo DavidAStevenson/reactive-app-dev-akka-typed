@@ -16,7 +16,7 @@ This application adds faulty behavior to the Librarian actors. The faults will b
 4. Inside the `sbt` session, enter `run` to bootstrap the application
 5. After the prompt, `Enter commands [q = quit, 2c = 2 customers, etc.]:` enter `2c<enter>` to start 2 customers
 6. Repeat step 5 to start more customers, or enter `q<enter>` to shut the application down
-7. Due to faulty Librarians and the impact it has on Customers, the RareBooks will eventually cease to receive messages from the Customers.
+7. Note that due to faulty Librarians and the impact this has on Customers, RareBooks will eventually cease to receive messages from the Customers.
 
 It is also possible to specify the "odds" of a Customers book searches being found, and the number of BookNotFound responses the Customer can "tolerate" before Complaining. The format of commands is "2c <odds> <tolerance>".
 For example, `1c 1 0` would create one Customer with 1% odds of requests succeeding, and 0 tolerance for BookNotFound requests.
