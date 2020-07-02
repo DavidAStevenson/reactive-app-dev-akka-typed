@@ -8,6 +8,9 @@ import RareBooksProtocol._
 
 object Librarian {
 
+  final case class ComplainException(c: Complain, customer: ActorRef[Msg])
+      extends IllegalStateException("Too many complaints!")
+
   sealed trait PrivateCommand extends BaseMsg
   private[library] case class GetState(replyTo: ActorRef[PrivateResponse]) extends PrivateCommand
   case class NotifyResearchResult(
@@ -52,10 +55,17 @@ class Librarian(
 
   import Librarian._
 
+  private val maxComplainCount: Int = 1
+  private var complainCount: Int = 0
+
   protected def ready(): Behavior[BaseMsg] =
     Behaviors.receiveMessage {
+      case c: Complain if complainCount == maxComplainCount =>
+        context.log.info(s"That's it, complaint from customer ${c.replyTo} was the final straw!")
+        throw ComplainException(c, c.replyTo)
       case Complain(replyTo, _) =>
         context.log.info(s"Credit issued to customer ${replyTo}")
+        complainCount += 1
         replyTo ! Credit()
         Behaviors.same
       case m: Msg =>

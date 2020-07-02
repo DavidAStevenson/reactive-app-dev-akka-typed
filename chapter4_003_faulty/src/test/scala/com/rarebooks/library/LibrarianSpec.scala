@@ -285,6 +285,16 @@ class LibrarianSpec
       customerProbe.expectMessageType[Credit]
     }
 
+    "throw a ComplainException if maxComplainCount reached" in {
+      val librarian = spawn(Librarian(findBookDuration))
+      librarian ! Complain(system.ignoreRef)
+      LoggingTestKit
+        .error[Librarian.ComplainException]
+        .expect {
+          librarian ! Complain(system.ignoreRef)
+        }
+    }
+
   }
 
 }
