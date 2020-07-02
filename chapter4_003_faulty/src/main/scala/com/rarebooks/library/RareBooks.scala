@@ -53,10 +53,13 @@ class RareBooks(
       Millis
     )
 
+  private val maxComplainCount: Int =
+    context.system.settings.config.getInt("rare-books.librarian.max-complain-count")
+
   private val nbrOfLibrarians: Int =
     context.system.settings.config.getInt("rare-books.nbr-of-librarians")
 
-  private var librarianRouter = createLibrarianRouter(findBookDuration)
+  private var librarianRouter = createLibrarianRouter()
   private var requestsToday: Int = 0
   private var totalRequests: Int = 0
 
@@ -120,9 +123,9 @@ class RareBooks(
         Behaviors.same
     }
 
-  private def createLibrarianRouter(findBookDuration: FiniteDuration): ActorRef[Msg] = {
+  private def createLibrarianRouter(): ActorRef[Msg] = {
     val pool = Routers.pool(poolSize = nbrOfLibrarians) {
-      Librarian(findBookDuration)
+      Librarian(findBookDuration, maxComplainCount)
     }
     context.spawn(pool, "librarian-router")
   }

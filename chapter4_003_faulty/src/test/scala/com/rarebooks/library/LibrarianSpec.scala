@@ -20,11 +20,12 @@ class LibrarianSpec
   val findBookDuration =
     Duration(conf.getDuration("rare-books.librarian.find-book-duration", Millis), Millis)
   val stashSize = conf.getInt("rare-books.librarian.stash-size")
+  val maxComplainCount = conf.getInt("rare-books.librarian.max-complain-count")
 
   val manualTime: ManualTime = ManualTime()
 
   def librarianTestApply(): Behavior[RareBooksProtocol.BaseMsg] =
-    Librarian.setup(findBookDuration)
+    Librarian.setup(findBookDuration, maxComplainCount)
 
   "Receiving FindBookByTitle" should {
 
@@ -32,7 +33,7 @@ class LibrarianSpec
       val customerProbe = testKit.createTestProbe[Msg]()
       val title = "The Epic of Gilgamesh"
       val msg = FindBookByTitle(title, customerProbe.ref)
-      val librarian = spawn(Librarian(findBookDuration))
+      val librarian = spawn(Librarian(findBookDuration, maxComplainCount))
       librarian ! msg
 
       manualTime.timePasses(findBookDuration)
@@ -45,7 +46,7 @@ class LibrarianSpec
       val customerProbe = testKit.createTestProbe[Msg]()
       val title = "Swiss Family Robinson"
       val msg = FindBookByTitle(title, customerProbe.ref)
-      val librarian = spawn(Librarian(findBookDuration))
+      val librarian = spawn(Librarian(findBookDuration, maxComplainCount))
       librarian ! msg
 
       manualTime.timePasses(findBookDuration)
@@ -61,7 +62,7 @@ class LibrarianSpec
       val customerProbe = testKit.createTestProbe[Msg]()
       val msg = FindBookByTopic(Set[Topic](Greece), customerProbe.ref)
 
-      val librarian = spawn(Librarian(findBookDuration))
+      val librarian = spawn(Librarian(findBookDuration, maxComplainCount))
       librarian ! msg
 
       manualTime.timePasses(findBookDuration)
@@ -75,7 +76,7 @@ class LibrarianSpec
       val customerProbe = testKit.createTestProbe[Msg]()
       val msg = FindBookByTopic(Set[Topic](Unknown), customerProbe.ref)
 
-      val librarian = spawn(Librarian(findBookDuration))
+      val librarian = spawn(Librarian(findBookDuration, maxComplainCount))
       librarian ! msg
 
       manualTime.timePasses(findBookDuration)
@@ -93,7 +94,7 @@ class LibrarianSpec
       val customerProbe = testKit.createTestProbe[Msg]()
       val author = "Herodotus"
       val msg = FindBookByAuthor(author, customerProbe.ref)
-      val librarian = spawn(Librarian(findBookDuration))
+      val librarian = spawn(Librarian(findBookDuration, maxComplainCount))
       librarian ! msg
 
       manualTime.timePasses(findBookDuration)
@@ -106,7 +107,7 @@ class LibrarianSpec
       val customerProbe = testKit.createTestProbe[Msg]()
       val author = "Robert Luis Stevenson"
       val msg = FindBookByAuthor(author, customerProbe.ref)
-      val librarian = spawn(Librarian(findBookDuration))
+      val librarian = spawn(Librarian(findBookDuration, maxComplainCount))
       librarian ! msg
 
       manualTime.timePasses(findBookDuration)
@@ -122,7 +123,7 @@ class LibrarianSpec
       val customerProbe = testKit.createTestProbe[Msg]()
       val isbn = "0872202208"
       val msg = FindBookByIsbn(isbn, customerProbe.ref)
-      val librarian = spawn(Librarian(findBookDuration))
+      val librarian = spawn(Librarian(findBookDuration, maxComplainCount))
       librarian ! msg
 
       manualTime.timePasses(findBookDuration)
@@ -135,7 +136,7 @@ class LibrarianSpec
       val customerProbe = testKit.createTestProbe[Msg]()
       val isbn = "0123456789"
       val msg = FindBookByIsbn(isbn, customerProbe.ref)
-      val librarian = spawn(Librarian(findBookDuration))
+      val librarian = spawn(Librarian(findBookDuration, maxComplainCount))
       librarian ! msg
 
       manualTime.timePasses(findBookDuration)
@@ -285,9 +286,13 @@ class LibrarianSpec
       customerProbe.expectMessageType[Credit]
     }
 
-    "throw a ComplainException if maxComplainCount reached" in {
-      val librarian = spawn(Librarian(findBookDuration))
-      librarian ! Complain(system.ignoreRef)
+    "throw a ComplainException if maxComplainCount breached" in {
+      val librarian = spawn(Librarian(findBookDuration, maxComplainCount))
+
+      (1 to maxComplainCount).foreach { _ =>
+        librarian ! Complain(system.ignoreRef)
+      }
+
       LoggingTestKit
         .error[Librarian.ComplainException]
         .expect {

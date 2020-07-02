@@ -25,19 +25,20 @@ object Librarian {
 
   private case object TimerKey
 
-  def apply(findBookDuration: FiniteDuration): Behavior[Msg] =
+  def apply(findBookDuration: FiniteDuration, maxComplainCount: Int): Behavior[Msg] =
     Behaviors.setup { context =>
-      setup(findBookDuration).narrow
+      setup(findBookDuration, maxComplainCount).narrow
     }
 
   private[library] def setup(
-      findBookDuration: FiniteDuration
+      findBookDuration: FiniteDuration,
+      maxComplainCount: Int
   ): Behavior[BaseMsg] =
     Behaviors.setup[BaseMsg] { context =>
       Behaviors.withTimers { timers =>
         val stashSize = context.system.settings.config.getInt("rare-books.librarian.stash-size")
         Behaviors.withStash(stashSize) { buffer =>
-          new Librarian(context, timers, buffer, findBookDuration).ready()
+          new Librarian(context, timers, buffer, findBookDuration, maxComplainCount).ready()
         }
       }
     }
@@ -48,14 +49,14 @@ class Librarian(
     context: ActorContext[BaseMsg],
     timers: TimerScheduler[BaseMsg],
     buffer: StashBuffer[BaseMsg],
-    findBookDuration: FiniteDuration
+    findBookDuration: FiniteDuration,
+    maxComplainCount: Int
 ) {
 
   context.log.info("Librarian started")
 
   import Librarian._
 
-  private val maxComplainCount: Int = 1
   private var complainCount: Int = 0
 
   protected def ready(): Behavior[BaseMsg] =
