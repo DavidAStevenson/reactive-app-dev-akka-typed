@@ -1,7 +1,7 @@
 package com.rarebooks.library
 
 import scala.concurrent.duration.{ MILLISECONDS => Millis, FiniteDuration, Duration, SECONDS }
-import akka.actor.typed.{ ActorRef, Behavior }
+import akka.actor.typed.{ ActorRef, Behavior, SupervisorStrategy }
 import akka.actor.typed.scaladsl.{ ActorContext, Behaviors, Routers, StashBuffer, TimerScheduler }
 
 import RareBooksProtocol._
@@ -125,7 +125,9 @@ class RareBooks(
 
   private def createLibrarianRouter(): ActorRef[Msg] = {
     val pool = Routers.pool(poolSize = nbrOfLibrarians) {
-      Librarian(findBookDuration, maxComplainCount)
+      Behaviors
+        .supervise(Librarian(findBookDuration, maxComplainCount))
+        .onFailure[Exception](SupervisorStrategy.restart)
     }
     context.spawn(pool, "librarian-router")
   }

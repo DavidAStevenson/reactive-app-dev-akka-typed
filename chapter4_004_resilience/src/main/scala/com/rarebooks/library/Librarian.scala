@@ -63,6 +63,7 @@ class Librarian(
     Behaviors.receiveMessage {
       case c: Complain if complainCount == maxComplainCount =>
         context.log.info(s"That's it, complaint from customer ${c.replyTo} was the final straw!")
+        context.self ! c // not great, presumes supervision strategy will be Restart
         throw ComplainException(c, c.replyTo)
       case Complain(replyTo, _) =>
         context.log.info(s"Credit issued to customer ${replyTo}")
